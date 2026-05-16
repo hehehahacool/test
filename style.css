@@ -1,0 +1,140 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+}
+
+body {
+    background: linear-gradient(135deg, #0a0f1e 0%, #0a0a0a 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Courier New', 'Monaco', monospace;
+}
+
+.game-wrapper {
+    background: #1a1a2e;
+    padding: 20px;
+    border-radius: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 0 2px #ff444422;
+}
+
+.game-header h1 {
+    text-align: center;
+    color: #ff4444;
+    text-shadow: 2px 2px 0 #660000;
+    margin-bottom: 8px;
+    letter-spacing: 3px;
+}
+
+.game-header p {
+    text-align: center;
+    color: #cccccc;
+    font-size: 12px;
+    margin-bottom: 15px;
+}
+
+canvas {
+    display: block;
+    margin: 0 auto;
+    border-radius: 12px;
+    box-shadow: 0 0 0 3px #2a2a3e, 0 0 0 6px #ff4444;
+    cursor: crosshair;
+    background: #2a2a2a;
+}
+
+.stats-panel {
+    display: flex;
+    justify-content: space-between;
+    margin: 15px 10px 10px 10px;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.stat {
+    background: #0a0a1a;
+    padding: 8px 18px;
+    border-radius: 40px;
+    font-weight: bold;
+    font-size: 18px;
+    color: #ffdd99;
+    border-left: 4px solid #ff4444;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.controls-info {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 12px;
+    font-size: 12px;
+    background: #0a0a1a;
+    padding: 8px;
+    border-radius: 20px;
+    color: #aaa;
+}
+
+.game-over {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #0a0a1aee;
+    backdrop-filter: blur(8px);
+    padding: 30px 50px;
+    border-radius: 30px;
+    text-align: center;
+    border: 2px solid #ff4444;
+    z-index: 100;
+    box-shadow: 0 0 50px rgba(0,0,0,0.8);
+}
+
+.game-over h2 {
+    color: #ff6666;
+    font-size: 36px;
+    margin-bottom: 15px;
+}
+
+.game-over p {
+    color: white;
+    font-size: 24px;
+    margin: 15px 0;
+}
+
+.game-over button {
+    background: #ff4444;
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    font-size: 20px;
+    font-weight: bold;
+    border-radius: 40px;
+    cursor: pointer;
+    font-family: monospace;
+    transition: 0.2s;
+}
+
+.game-over button:hover {
+    background: #ff6666;
+    transform: scale(1.05);
+}
+
+.hidden {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .game-wrapper {
+        padding: 10px;
+    }
+    canvas {
+        width: 100%;
+        height: auto;
+    }
+    .stat {
+        font-size: 14px;
+        padding: 5px 12px;
+    }
+}
