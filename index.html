@@ -16,37 +16,31 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             margin: 0;
-            padding: 16px;
+            padding: 20px;
         }
 
-        /* Main game card - fits perfectly */
         .game-container {
-            background: rgba(30, 20, 15, 0.85);
+            background: rgba(30, 20, 15, 0.9);
             backdrop-filter: blur(4px);
             border-radius: 48px;
             padding: 20px 16px 24px;
-            box-shadow: 0 25px 45px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.1);
+            box-shadow: 0 25px 45px rgba(0,0,0,0.5);
             border: 1px solid rgba(255,215,150,0.3);
             width: 100%;
-            max-width: 700px;
+            max-width: 650px;
             margin: auto;
         }
 
         h1 {
             text-align: center;
             font-size: 1.8rem;
-            letter-spacing: 2px;
-            margin: 0 0 4px 0;
+            margin: 0 0 4px;
             background: linear-gradient(135deg, #f9e0a0, #d4a373);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
         }
 
         .sub {
@@ -54,21 +48,16 @@
             font-size: 0.7rem;
             color: #ecd9b4;
             margin-bottom: 16px;
-            border-bottom: 1px dashed #b98f5f;
-            display: inline-block;
-            width: auto;
-            padding: 0 12px 4px;
         }
 
-        /* Board wrapper - ensures no overflow */
+        /* Board wrapper - fixed size */
         .board-wrapper {
             background: #2d2b26;
             padding: 10px;
             border-radius: 28px;
             box-shadow: inset 0 0 8px #00000033, 0 10px 20px black;
-            margin: 0 auto;
             width: fit-content;
-            max-width: 100%;
+            margin: 0 auto;
         }
 
         #board {
@@ -78,52 +67,43 @@
             background-color: #e9d6b0;
             border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            width: min(62vw, 62vh, 500px);
+            width: min(70vw, 70vh, 500px);
             max-width: 100%;
-            margin: 0 auto;
-            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
         .square {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: min(5vw, 42px);
+            font-size: min(6vw, 48px);
             font-weight: 500;
-            transition: 0.1s linear;
-            text-shadow: 2px 2px 2px rgba(0,0,0,0.2);
-            font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+            transition: 0.1s;
+            font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Helvetica Neue', sans-serif;
+            cursor: pointer;
         }
 
-        /* Light and dark squares */
         .square.light {
             background-color: #f7e9cd;
-            box-shadow: inset 0 0 0 1px rgba(255,255,200,0.6);
         }
         .square.dark {
             background-color: #b58863;
-            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2);
         }
 
         .square.highlight {
             background-color: #b7d968;
-            box-shadow: 0 0 0 3px #f9f3b0 inset, 0 0 0 2px gold;
-            transform: scale(0.98);
+            box-shadow: inset 0 0 0 3px gold;
         }
-
         .square.selected {
             background-color: #f3b33d;
-            box-shadow: 0 0 0 4px #ffdd99 inset;
-            transform: scale(0.96);
+            box-shadow: inset 0 0 0 4px #ffdd99;
         }
 
-        /* Stats panel */
         .stats-panel {
             display: flex;
             justify-content: space-between;
             margin: 16px 8px 12px;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
         }
 
@@ -134,17 +114,15 @@
             border-radius: 60px;
             font-weight: bold;
             color: #ffecb3;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             text-align: center;
             flex: 1;
-            min-width: 90px;
             border: 1px solid #c9aa6f;
-            box-shadow: 0 2px 6px black;
         }
 
         .info-card span {
             color: #ffcf7a;
-            font-size: 1.1rem;
+            font-size: 1rem;
             margin-left: 5px;
         }
 
@@ -157,16 +135,13 @@
             border-radius: 48px;
             font-size: 0.9rem;
             cursor: pointer;
-            transition: all 0.15s;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            font-family: inherit;
+            transition: 0.1s;
             margin: 4px;
         }
 
         button:hover {
             background: #7e533e;
             transform: scale(0.97);
-            box-shadow: 0 1px 3px black;
         }
 
         input {
@@ -177,30 +152,24 @@
             font-size: 0.9rem;
             width: 180px;
             margin: 5px;
-            font-family: inherit;
-            color: #2d2b26;
-            font-weight: bold;
             text-align: center;
         }
 
         .waiting-message {
             background: #2b2a1ed9;
             border-radius: 48px;
-            padding: 10px 16px;
+            padding: 10px;
             text-align: center;
             font-size: 0.9rem;
             font-weight: bold;
             color: #ffe2aa;
-            margin: 12px 0 5px;
-            backdrop-filter: blur(4px);
+            margin: 12px 0;
         }
 
         .hidden {
             display: none;
         }
-
-        /* Center content inside container */
-        .center-flex {
+        .center {
             text-align: center;
         }
     </style>
@@ -209,52 +178,48 @@
 </head>
 <body>
 <div class="game-container">
-    <h1>
-        <span>♜</span> CHESS ROYALE <span>♞</span>
-    </h1>
-    <div class="center-flex"><div class="sub">⚡ real‑time multiplayer | bot mode ⚡</div></div>
+    <h1>♜ CHESS ROYALE ♞</h1>
+    <div class="sub">⚡ real‑time multiplayer | bot mode ⚡</div>
 
-    <div id="loginScreen" class="center-flex">
-        <input type="text" id="playerName" placeholder="Enter your name" autocomplete="off">
-        <div style="margin-top: 8px;">
+    <div id="loginScreen" class="center">
+        <input type="text" id="playerName" placeholder="Your name">
+        <div>
             <button id="playHumanBtn">👥 PLAY vs HUMAN</button>
             <button id="playBotBtn">🤖 PLAY vs BOT</button>
         </div>
     </div>
 
-    <div id="waitingMsg" class="waiting-message hidden">⏳ Looking for opponent... share the link with a friend!</div>
+    <div id="waitingMsg" class="waiting-message hidden">⏳ Waiting for opponent...</div>
 
     <div id="gameScreen" class="hidden">
         <div class="board-wrapper">
             <div id="board"></div>
         </div>
-
         <div class="stats-panel">
             <div class="info-card">🧑‍🎤 YOU: <span id="playerColorTag">—</span></div>
             <div class="info-card">🎯 TURN: <span id="turnIndicator">—</span></div>
             <div class="info-card">🏆 STATUS: <span id="gameStatusText">active</span></div>
         </div>
-        <div class="center-flex" style="margin-top: 8px;">
-            <button id="cancelBtn">🏠 CANCEL / EXIT</button>
+        <div class="center">
+            <button id="cancelBtn">🏠 EXIT</button>
         </div>
     </div>
 </div>
 
 <script>
-    // ========== YOUR BACK4APP KEYS (already inserted) ==========
+    // Back4App keys (your keys)
     const APP_ID = '14jnzWrwPp5umfm7G09W4W1Loezpnw2OQ9BQXsRF';
     const JS_KEY = 'TEc9Nj7tQzGypzjbIShqoAmN81XIdA6l9tdXzPLv';
     Parse.initialize(APP_ID, JS_KEY);
     Parse.serverURL = 'https://parseapi.back4app.com/';
 
     let currentGame = null;
-    let playerColor = null;       // "white" or "black"
+    let playerColor = null;
     let isBotGame = false;
     let game = new Chess();
     let selectedSquare = null;
     let liveQuerySubscription = null;
 
-    // DOM elements
     const loginScreen = document.getElementById('loginScreen');
     const waitingMsg = document.getElementById('waitingMsg');
     const gameScreen = document.getElementById('gameScreen');
@@ -263,28 +228,29 @@
     const turnIndicator = document.getElementById('turnIndicator');
     const gameStatusText = document.getElementById('gameStatusText');
 
-    // ------------------- PIECE MAP (beautiful Unicode) -------------------
-    function getPieceSymbol(piece) {
+    // Unicode chess pieces (large and clear)
+    function pieceSymbol(piece) {
         if (!piece) return '';
-        const symbols = {
+        const map = {
             'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟',
             'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙'
         };
-        return symbols[piece.type + (piece.color === 'w' ? 'w' : 'b')] || '';
+        return map[piece.type + (piece.color === 'w' ? 'w' : 'b')];
     }
 
     function drawBoard() {
         boardDiv.innerHTML = '';
-        const boardState = game.board();
+        const board = game.board();
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
                 const square = document.createElement('div');
                 square.className = `square ${(i + j) % 2 === 0 ? 'light' : 'dark'}`;
-                const piece = boardState[i][j];
+                const piece = board[i][j];
                 if (piece) {
-                    square.textContent = getPieceSymbol(piece);
-                    const pieceName = { 'k':'King','q':'Queen','r':'Rook','b':'Bishop','n':'Knight','p':'Pawn' };
-                    square.title = `${piece.color === 'w' ? 'White' : 'Black'} ${pieceName[piece.type]}`;
+                    square.textContent = pieceSymbol(piece);
+                    // optional tooltip
+                    const names = { k:'King',q:'Queen',r:'Rook',b:'Bishop',n:'Knight',p:'Pawn' };
+                    square.title = `${piece.color === 'w' ? 'White' : 'Black'} ${names[piece.type]}`;
                 }
                 square.dataset.row = i;
                 square.dataset.col = j;
@@ -292,13 +258,13 @@
                 boardDiv.appendChild(square);
             }
         }
-        updateUIinfo();
+        updateUI();
     }
 
     function highlightSquares(squares) {
         document.querySelectorAll('.square').forEach(sq => sq.classList.remove('highlight'));
-        for (const [row, col] of squares) {
-            const idx = row * 8 + col;
+        for (let [r,c] of squares) {
+            let idx = r*8 + c;
             if (boardDiv.children[idx]) boardDiv.children[idx].classList.add('highlight');
         }
     }
@@ -308,94 +274,90 @@
         selectedSquare = null;
     }
 
-    function updateUIinfo() {
+    function updateUI() {
         if (!currentGame) return;
-        const turn = game.turn();
+        let turn = game.turn();
         turnIndicator.innerText = turn === 'w' ? '⚪ WHITE' : '⚫ BLACK';
-        playerColorTag.innerText = playerColor === 'white' ? '⚪ White' : '⚫ Black';
+        playerColorTag.innerText = playerColor === 'white' ? 'White' : 'Black';
         if (game.game_over()) {
-            if (game.in_checkmate()) {
-                const winner = game.turn() === 'w' ? 'Black' : 'White';
-                gameStatusText.innerText = `🏁 ${winner} wins!`;
-            } else if (game.in_stalemate()) gameStatusText.innerText = `♾️ Stalemate`;
-            else gameStatusText.innerText = `🏁 Game over`;
+            if (game.in_checkmate()) gameStatusText.innerText = game.turn() === 'w' ? 'Black wins!' : 'White wins!';
+            else if (game.in_stalemate()) gameStatusText.innerText = 'Stalemate';
+            else gameStatusText.innerText = 'Game over';
         } else {
-            gameStatusText.innerText = game.in_check() ? '⚠️ CHECK! ⚠️' : 'Playing';
+            gameStatusText.innerText = game.in_check() ? '⚠️ CHECK!' : 'Playing';
         }
     }
 
     async function onSquareClick(row, col) {
         if (!currentGame || game.game_over()) return;
-        const turn = game.turn();
+        let turn = game.turn();
         if ((turn === 'w' && playerColor !== 'white') || (turn === 'b' && playerColor !== 'black')) {
-            gameStatusText.innerText = "❌ Not your turn!";
-            setTimeout(() => updateUIinfo(), 800);
+            gameStatusText.innerText = "Not your turn!";
+            setTimeout(updateUI, 700);
             return;
         }
         if (selectedSquare === null) {
-            const piece = game.get(row, col);
+            let piece = game.get(row, col);
             if (piece && piece.color === turn) {
                 selectedSquare = { row, col };
                 clearSelected();
-                const idx = row * 8 + col;
+                let idx = row*8+col;
                 if (boardDiv.children[idx]) boardDiv.children[idx].classList.add('selected');
-                const fromAlgebraic = String.fromCharCode(97+col) + (8-row);
-                const moves = game.moves({ square: fromAlgebraic, verbose: true });
-                const targets = moves.map(m => [8 - parseInt(m.to[1]), m.to.charCodeAt(0) - 97]);
+                let fromAlg = String.fromCharCode(97+col) + (8-row);
+                let moves = game.moves({ square: fromAlg, verbose: true });
+                let targets = moves.map(m => [8 - parseInt(m.to[1]), m.to.charCodeAt(0)-97]);
                 highlightSquares(targets);
             } else {
                 gameStatusText.innerText = "Select your own piece";
-                setTimeout(() => updateUIinfo(), 600);
+                setTimeout(updateUI, 600);
             }
         } else {
-            const from = String.fromCharCode(97 + selectedSquare.col) + (8 - selectedSquare.row);
-            const to = String.fromCharCode(97 + col) + (8 - row);
-            const moveObj = game.move({ from, to, promotion: 'q' });
+            let from = String.fromCharCode(97+selectedSquare.col) + (8-selectedSquare.row);
+            let to = String.fromCharCode(97+col) + (8-row);
+            let moveObj = game.move({ from, to, promotion: 'q' });
             if (moveObj) {
                 clearSelected();
                 drawBoard();
-                await sendMoveToBackend(game.fen(), game.turn());
-                updateUIinfo();
+                await sendMove(game.fen(), game.turn());
+                updateUI();
             } else {
                 gameStatusText.innerText = "Invalid move";
                 clearSelected();
                 drawBoard();
-                setTimeout(() => updateUIinfo(), 500);
+                setTimeout(updateUI, 500);
             }
         }
     }
 
-    async function sendMoveToBackend(fen, turn) {
+    async function sendMove(fen, turn) {
         if (!currentGame) return;
         currentGame.set('fen', fen);
         currentGame.set('turn', turn);
         if (game.game_over()) {
             currentGame.set('status', 'gameover');
-            if (game.in_checkmate()) {
-                const winner = (game.turn() === 'w') ? 'black' : 'white';
-                currentGame.set('winner', winner);
-            } else currentGame.set('winner', 'draw');
+            if (game.in_checkmate()) currentGame.set('winner', game.turn() === 'w' ? 'black' : 'white');
+            else currentGame.set('winner', 'draw');
         }
         await currentGame.save();
     }
 
-    function subscribeToGame(gameObj) {
+    function subscribeToGame(obj) {
         if (liveQuerySubscription) liveQuerySubscription.unsubscribe();
-        const query = new Parse.Query('Game');
-        query.equalTo('objectId', gameObj.id);
+        let query = new Parse.Query('Game');
+        query.equalTo('objectId', obj.id);
         liveQuerySubscription = query.subscribe();
-        liveQuerySubscription.on('update', (object) => {
-            if (object.id !== currentGame?.id) return;
-            const newFen = object.get('fen');
-            const newTurn = object.get('turn');
+        liveQuerySubscription.on('update', (updated) => {
+            if (updated.id !== currentGame?.id) return;
+            let newFen = updated.get('fen');
+            let newTurn = updated.get('turn');
             if (newFen !== game.fen()) {
                 game.load(newFen);
                 drawBoard();
-                updateUIinfo();
+                updateUI();
                 if (isBotGame && !game.game_over()) {
-                    const isBotTurn = (playerColor === 'white' && game.turn() === 'b') ||
-                                      (playerColor === 'black' && game.turn() === 'w');
-                    if (isBotTurn) setTimeout(() => makeBotMove(), 250);
+                    let botTurn = (playerColor === 'white' && game.turn() === 'b') ||
+                                  (playerColor === 'black' && game.turn() === 'w');
+                    if (botTurn) setTimeout(() => makeBotMove(), 300);
                 }
             }
         });
@@ -403,53 +365,52 @@
 
     async function makeBotMove() {
         if (!currentGame || game.game_over()) return;
-        const turn = game.turn();
+        let turn = game.turn();
         if ((turn === 'w' && playerColor === 'white') || (turn === 'b' && playerColor === 'black')) return;
-        const moves = game.moves();
+        let moves = game.moves();
         if (moves.length === 0) return;
-        const randomMove = moves[Math.floor(Math.random() * moves.length)];
-        const moveObj = game.move(randomMove);
+        let randomMove = moves[Math.floor(Math.random() * moves.length)];
+        let moveObj = game.move(randomMove);
         if (moveObj) {
             drawBoard();
-            await sendMoveToBackend(game.fen(), game.turn());
-            updateUIinfo();
+            await sendMove(game.fen(), game.turn());
+            updateUI();
         }
     }
 
-    async function createGame(isBot, playerName) {
-        const GameClass = Parse.Object.extend('Game');
-        const newGame = new GameClass();
-        const newGameId = Math.random().toString(36).substring(2, 8);
-        newGame.set('gameId', newGameId);
+    async function createGame(isBot, name) {
+        let GameClass = Parse.Object.extend('Game');
+        let newGame = new GameClass();
+        let gameId = Math.random().toString(36).substring(2,8);
+        newGame.set('gameId', gameId);
         newGame.set('fen', 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
         newGame.set('turn', 'w');
         if (isBot) {
             newGame.set('status', 'active');
-            newGame.set('players', { white: playerName, black: '🤖 Bot' });
+            newGame.set('players', { white: name, black: '🤖 Bot' });
         } else {
             newGame.set('status', 'waiting');
-            newGame.set('players', { white: playerName, black: null });
+            newGame.set('players', { white: name, black: null });
         }
         await newGame.save();
         return newGame;
     }
 
-    async function joinWaitingGame(playerName) {
-        const query = new Parse.Query('Game');
+    async function joinGame(name) {
+        let query = new Parse.Query('Game');
         query.equalTo('status', 'waiting');
         query.doesNotExist('players.black');
-        const waiting = await query.first();
+        let waiting = await query.first();
         if (!waiting) return null;
-        waiting.set('players', { white: waiting.get('players').white, black: playerName });
+        waiting.set('players', { white: waiting.get('players').white, black: name });
         waiting.set('status', 'active');
         await waiting.save();
         return waiting;
     }
 
-    // Event listeners
     document.getElementById('playHumanBtn').onclick = async () => {
-        const name = document.getElementById('playerName').value.trim() || 'Guest';
-        let gameObj = await joinWaitingGame(name);
+        let name = document.getElementById('playerName').value.trim() || 'Guest';
+        let gameObj = await joinGame(name);
         let assignedColor = 'black';
         let opponent = '';
         if (!gameObj) {
@@ -468,7 +429,6 @@
         isBotGame = false;
         game.load(gameObj.get('fen'));
         drawBoard();
-        updateUIinfo();
         loginScreen.classList.add('hidden');
         gameScreen.classList.remove('hidden');
         subscribeToGame(gameObj);
@@ -476,14 +436,13 @@
     };
 
     document.getElementById('playBotBtn').onclick = async () => {
-        const name = document.getElementById('playerName').value.trim() || 'You';
-        const gameObj = await createGame(true, name);
+        let name = document.getElementById('playerName').value.trim() || 'You';
+        let gameObj = await createGame(true, name);
         currentGame = gameObj;
         playerColor = 'white';
         isBotGame = true;
         game.load(gameObj.get('fen'));
         drawBoard();
-        updateUIinfo();
         loginScreen.classList.add('hidden');
         gameScreen.classList.remove('hidden');
         waitingMsg.classList.add('hidden');
