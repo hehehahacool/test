@@ -2,20 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>♞ Chess vs Bot | Tap to Move</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Chess vs Bot</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="common.js"></script>
 </head>
 <body>
 <div class="game-container">
-    <h1>🤖 CHESS vs BOT</h1>
+    <h1>♞ CHESS vs BOT</h1>
     <div class="sub">Tap a white piece → green circles show where it can move → tap a green circle to move</div>
 
-    <div class="board-wrapper">
-        <div id="board"></div>
-    </div>
+    <div id="board"></div>
 
     <div class="stats-panel">
         <div class="info-card">🎯 TURN: <span id="turnIndicator">Your turn</span></div>
@@ -24,7 +22,6 @@
 
     <div class="center">
         <button id="resetBtn">🔄 New Game</button>
-        <a href="index.html"><button>🏠 Home</button></a>
     </div>
 </div>
 
@@ -33,19 +30,19 @@
     const boardDiv = document.getElementById('board');
     const turnIndicator = document.getElementById('turnIndicator');
     const statusText = document.getElementById('statusText');
-    let selectedPieceSquare = null;
-    let currentLegalTargets = [];
-    let waitingForBot = false;
+    let selectedPiece = null;      // { row, col }
+    let legalTargets = [];          // array of [row, col]
+    let waitingBot = false;
 
     function updateUI() {
         if (game.game_over()) {
             if (game.in_checkmate()) {
                 const loser = game.turn();
                 const winner = loser === 'w' ? 'Black' : 'White';
-                statusText.innerText = `${winner} wins by checkmate!`;
+                statusText.innerText = `${winner} wins!`;
                 turnIndicator.innerText = "Game over";
             } else if (game.in_stalemate()) {
-                statusText.innerText = "Stalemate!";
+                statusText.innerText = "Stalemate";
                 turnIndicator.innerText = "Game over";
             } else {
                 statusText.innerText = "Game over";
@@ -53,132 +50,141 @@
             }
             return;
         }
-        const isPlayerTurn = (game.turn() === 'w');
-        turnIndicator.innerText = isPlayerTurn ? "✅ YOUR TURN" : "🤖 BOT'S TURN...";
+        const playerTurn = (game.turn() === 'w');
+        turnIndicator.innerText = playerTurn ? "✅ YOUR TURN" : "🤖 BOT'S TURN...";
         statusText.innerText = game.in_check() ? "⚠️ CHECK!" : "Playing";
     }
 
-    function clearAllHighlights() {
+    function clearHighlights() {
         for (let i = 0; i < boardDiv.children.length; i++) {
             boardDiv.children[i].classList.remove('has-legal-move');
             boardDiv.children[i].classList.remove('selected');
         }
     }
 
-    function redrawBoard() {
+    function redraw() {
         drawBoard(game, boardDiv, onSquareClick);
-        if (selectedPieceSquare) {
-            const idx = selectedPieceSquare.row * 8 + selectedPieceSquare.col;
+        if (selectedPiece) {
+            const idx = selectedPiece.row * 8 + selectedPiece.col;
             if (boardDiv.children[idx]) boardDiv.children[idx].classList.add('selected');
         }
-        if (currentLegalTargets.length > 0) {
-            highlightSquares(boardDiv, currentLegalTargets);
+        if (legalTargets.length) {
+            highlightSquares(boardDiv, legalTargets);
         }
         updateUI();
     }
 
     function onSquareClick(row, col) {
         if (game.game_over()) return;
-        if (waitingForBot) {
-            turnIndicator.innerText = "⏳ Wait for bot...";
+        if (waitingBot) {
+            turnIndicator.innerText = "Wait for bot...";
             return;
         }
-        const isPlayerTurn = (game.turn() === 'w');
-        if (!isPlayerTurn) {
-            turnIndicator.innerText = "⏳ Wait for bot...";
+        if (game.turn() !== 'w') {
+            turnIndicator.innerText = "Not your turn";
             setTimeout(updateUI, 800);
             return;
         }
 
-        if (selectedPieceSquare !== null) {
-            const isLegal = currentLegalTargets.some(([r,c]) => r === row && c === col);
-            if (isLegal) {
-                const fromRow = selectedPieceSquare.row;
-                const fromCol = selectedPieceSquare.col;
-                const fromAlgebraic = String.fromCharCode(97 + fromCol) + (8 - fromRow);
-                const toAlgebraic = String.fromCharCode(97 + col) + (8 - row);
-                const move = game.move({ from: fromAlgebraic, to: toAlgebraic, promotion: 'q' });
+        // If a piece is already selected
+        if (selectedPiece) {
+            const isTarget = legalTargets.some(([r,c]) => r === row && c === col);
+            if (isTarget) {
+                const fromRow = selectedPiece.row;
+                const fromCol = selectedPiece.col;
+                const from = String.fromCharCode(97 + fromCol) + (8 - fromRow);
+                const to = String.fromCharCode(97 + col) + (8 - row);
+                const move = game.move({ from, to, promotion: 'q' });
                 if (move) {
-                    selectedPieceSquare = null;
-                    currentLegalTargets = [];
-                    redrawBoard();
+                    selectedPiece = null;
+                    legalTargets = [];
+                    redraw();
                     updateUI();
                     if (!game.game_over() && game.turn() === 'b') {
-                        waitingForBot = true;
-                        turnIndicator.innerText = "🤖 BOT'S TURN...";
-                        setTimeout(makeBotMove, 300);
+                        waitingBot = true;
+                        turnIndicator.innerText = "Bot thinking...";
+                        setTimeout(() => makeBotMove(), 300);
                     }
                     return;
                 }
             }
-            clearAllHighlights();
-            selectedPieceSquare = null;
-            currentLegalTargets = [];
+            // If clicked on non-target, clear selection
+            clearHighlights();
+            selectedPiece = null;
+            legalTargets = [];
+            // fall through to attempt new selection
         }
 
+        // No selection: try to select a white piece
         const piece = game.get(row, col);
         if (piece && piece.color === 'w') {
-            selectedPieceSquare = { row, col };
-            clearAllHighlights();
+            selectedPiece = { row, col };
+            clearHighlights();
             const idx = row * 8 + col;
             if (boardDiv.children[idx]) boardDiv.children[idx].classList.add('selected');
-            const fromAlgebraic = String.fromCharCode(97 + col) + (8 - row);
-            const moves = game.moves({ square: fromAlgebraic, verbose: true });
+            const fromAlg = String.fromCharCode(97 + col) + (8 - row);
+            const moves = game.moves({ square: fromAlg, verbose: true });
             const targets = moves.map(m => {
                 const toRow = 8 - parseInt(m.to[1]);
                 const toCol = m.to.charCodeAt(0) - 97;
                 return [toRow, toCol];
             });
-            currentLegalTargets = targets;
-            if (targets.length > 0) {
+            legalTargets = targets;
+            if (targets.length) {
                 highlightSquares(boardDiv, targets);
-                statusText.innerText = `Tap a green circle to move`;
-                setTimeout(() => { if (!game.game_over()) statusText.innerText = game.in_check() ? "⚠️ CHECK!" : "Playing"; }, 1500);
+                statusText.innerText = "Tap a green circle to move";
+                setTimeout(() => {
+                    if (!game.game_over()) statusText.innerText = game.in_check() ? "⚠️ CHECK!" : "Playing";
+                }, 1500);
             } else {
-                statusText.innerText = "This piece has no legal moves";
-                setTimeout(() => { if (!game.game_over()) statusText.innerText = "Playing"; }, 1000);
+                statusText.innerText = "No legal moves for this piece";
+                setTimeout(() => {
+                    if (!game.game_over()) statusText.innerText = "Playing";
+                }, 1000);
             }
         } else {
             statusText.innerText = "Select your piece (white)";
-            setTimeout(() => { if (!game.game_over()) statusText.innerText = "Playing"; }, 1000);
+            setTimeout(() => {
+                if (!game.game_over()) statusText.innerText = "Playing";
+            }, 800);
         }
     }
 
     function makeBotMove() {
         if (game.game_over()) {
-            waitingForBot = false;
+            waitingBot = false;
             return;
         }
         if (game.turn() !== 'b') {
-            waitingForBot = false;
+            waitingBot = false;
             updateUI();
             return;
         }
         const moves = game.moves();
-        if (moves.length === 0) {
-            waitingForBot = false;
+        if (!moves.length) {
+            waitingBot = false;
             updateUI();
             return;
         }
         const randomMove = moves[Math.floor(Math.random() * moves.length)];
         game.move(randomMove);
-        selectedPieceSquare = null;
-        currentLegalTargets = [];
-        redrawBoard();
-        waitingForBot = false;
+        selectedPiece = null;
+        legalTargets = [];
+        redraw();
+        waitingBot = false;
         updateUI();
         if (!game.game_over() && game.turn() === 'b') {
-            waitingForBot = true;
+            waitingBot = true;
             setTimeout(makeBotMove, 200);
         }
     }
 
     function resetGame() {
         game = new Chess();
-        selectedPieceSquare = null;
-        currentLegalTargets = [];
-        waitingForBot = false;
-        redrawBoard();
+        selectedPiece = null;
+        legalTargets = [];
+        waitingBot = false;
+        redraw();
         updateUI();
     }
 
