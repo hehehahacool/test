@@ -1,4 +1,4 @@
-// common.js - shared functions for both bot and human modes
+// common.js – shared chess board drawing functions
 
 function getPieceImageSrc(piece) {
     if (!piece) return null;
@@ -16,6 +16,7 @@ function getPieceImageSrc(piece) {
 }
 
 function drawBoard(game, boardDiv, clickHandler) {
+    if (!boardDiv) return;
     boardDiv.innerHTML = '';
     const board = game.board();
     for (let i = 0; i < 8; i++) {
@@ -28,28 +29,43 @@ function drawBoard(game, boardDiv, clickHandler) {
                 img.src = getPieceImageSrc(piece);
                 img.alt = `${piece.color} ${piece.type}`;
                 img.className = 'piece-img';
+                img.style.width = '80%';
+                img.style.height = '80%';
+                img.style.objectFit = 'contain';
+                img.style.display = 'block';
+                img.style.pointerEvents = 'none';
                 img.onerror = () => {
                     const fallback = document.createTextNode(piece.color === 'w' ? '♙' : '♟');
+                    square.innerHTML = '';
                     square.appendChild(fallback);
+                    fallback.style.fontSize = 'clamp(28px, 6vw, 48px)';
                 };
                 square.appendChild(img);
             }
             square.dataset.row = i;
             square.dataset.col = j;
-            square.addEventListener('click', () => clickHandler(i, j));
+            square.addEventListener('click', (function(r, c) {
+                return function() { clickHandler(r, c); };
+            })(i, j));
             boardDiv.appendChild(square);
         }
     }
 }
 
 function highlightSquares(boardDiv, squares) {
-    document.querySelectorAll('.square').forEach(sq => sq.classList.remove('highlight'));
-    for (let [r,c] of squares) {
-        let idx = r*8 + c;
-        if (boardDiv.children[idx]) boardDiv.children[idx].classList.add('highlight');
+    for (let i = 0; i < boardDiv.children.length; i++) {
+        boardDiv.children[i].classList.remove('has-legal-move');
+    }
+    for (let [r, c] of squares) {
+        const idx = r * 8 + c;
+        if (boardDiv.children[idx]) {
+            boardDiv.children[idx].classList.add('has-legal-move');
+        }
     }
 }
 
 function clearSelected(boardDiv) {
-    document.querySelectorAll('.square').forEach(sq => sq.classList.remove('selected'));
+    for (let i = 0; i < boardDiv.children.length; i++) {
+        boardDiv.children[i].classList.remove('selected');
+    }
 }
