@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Chess vs Bot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>♞ Chess vs Bot | Easy AI</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="common.js"></script>
@@ -11,105 +11,173 @@
 <body>
 <div class="game-container">
     <h1>🤖 CHESS vs BOT</h1>
-    <div class="sub">you are white, bot is black</div>
+    <div class="sub">You are White, Bot is Black (easy random moves)</div>
+
     <div class="board-wrapper">
         <div id="board"></div>
     </div>
+
     <div class="stats-panel">
-        <div class="info-card">🎯 TURN: <span id="turnIndicator">White to move</span></div>
+        <div class="info-card">🎯 TURN: <span id="turnIndicator">Your turn</span></div>
         <div class="info-card">🏆 STATUS: <span id="statusText">Playing</span></div>
     </div>
+
     <div class="center">
-        <button onclick="location.reload()">🔄 New Game</button>
+        <button id="resetBtn">🔄 New Game</button>
         <a href="index.html"><button>🏠 Home</button></a>
     </div>
 </div>
 
 <script>
+    // Game state
     let game = new Chess();
     let boardDiv = document.getElementById('board');
     let turnIndicator = document.getElementById('turnIndicator');
     let statusText = document.getElementById('statusText');
-    let selectedSquare = null;
+    let selectedSquare = null;   // { row, col }
+    let waitingForBot = false;
 
+    // Helper: update UI text (turn, check, game over)
     function updateUI() {
-        const turn = game.turn();
-        turnIndicator.innerText = turn === 'w' ? "Your turn (White)" : "Bot thinking...";
         if (game.game_over()) {
             if (game.in_checkmate()) {
-                const winner = game.turn() === 'w' ? "Black wins!" : "You win!";
-                statusText.innerText = winner;
+                const loser = game.turn(); // who is to move and cannot?
+                const winner = loser === 'w' ? 'Black' : 'White';
+                statusText.innerText = `${winner} wins by checkmate!`;
                 turnIndicator.innerText = "Game over";
-            } else if (game.in_stalemate()) statusText.innerText = "Stalemate!";
-            else statusText.innerText = "Game over";
-        } else {
-            statusText.innerText = game.in_check() ? "CHECK!" : "Playing";
+            } else if (game.in_stalemate()) {
+                statusText.innerText = "Stalemate!";
+                turnIndicator.innerText = "Game over";
+            } else {
+                statusText.innerText = "Game over";
+                turnIndicator.innerText = "Game over";
+            }
+            return;
         }
+
+        const turn = game.turn();
+        const isPlayerTurn = (turn === 'w'); // player is white
+        turnIndicator.innerText = isPlayerTurn ? "✅ YOUR TURN" : "🤖 BOT'S TURN...";
+        statusText.innerText = game.in_check() ? "⚠️ CHECK!" : "Playing";
     }
 
-    function makeBotMove() {
-        if (game.game_over()) return;
-        if (game.turn() === 'b') {
-            setTimeout(() => {
-                const moves = game.moves();
-                if (moves.length > 0) {
-                    const randomMove = moves[Math.floor(Math.random() * moves.length)];
-                    game.move(randomMove);
-                    redrawBoard();
-                    updateUI();
-                    if (game.game_over()) return;
-                    // after bot move, it's player's turn
-                }
-            }, 200);
-        }
-    }
-
+    // Redraw board using common.js drawBoard
     function redrawBoard() {
         drawBoard(game, boardDiv, onSquareClick);
         updateUI();
     }
 
-    function onSquareClick(row, col) {
+    // Clear highlights and selected square
+    function clearHighlightsAndSelected() {
+        clearSelected(boardDiv);
+        document.querySelectorAll('.square').forEach(sq => sq.classList.remove('highlight'));
+    }
+
+    // Handle click on a square
+    async function onSquareClick(row, col) {
         if (game.game_over()) return;
-        if (game.turn() !== 'w') {
-            turnIndicator.innerText = "Wait for bot...";
+        if (waitingForBot) return;
+        const turn = game.turn();
+        // Only player (white) can move
+        if (turn !== 'w') {
+            turnIndicator.innerText = "⏳ Wait for bot...";
+            setTimeout(updateUI, 800);
             return;
         }
+
+        // No piece selected yet
         if (selectedSquare === null) {
             const piece = game.get(row, col);
             if (piece && piece.color === 'w') {
                 selectedSquare = { row, col };
-                clearSelected(boardDiv);
-                const idx = row*8+col;
+                clearHighlightsAndSelected();
+                // highlight this square as selected
+                const idx = row * 8 + col;
                 if (boardDiv.children[idx]) boardDiv.children[idx].classList.add('selected');
-                const fromAlg = String.fromCharCode(97+col) + (8-row);
-                const moves = game.moves({ square: fromAlg, verbose: true });
-                const targets = moves.map(m => [8 - parseInt(m.to[1]), m.to.charCodeAt(0)-97]);
+                // get legal moves for this piece
+                const fromAlgebraic = String.fromCharCode(97 + col) + (8 - row);
+                const moves = game.moves({ square: fromAlgebraic, verbose: true });
+                const targets = moves.map(m => [8 - parseInt(m.to[1]), m.to.charCodeAt(0) - 97]);
                 highlightSquares(boardDiv, targets);
             } else {
                 statusText.innerText = "Select your piece";
-                setTimeout(() => { if(!game.game_over()) statusText.innerText = "Playing"; }, 800);
+                setTimeout(() => { if (!game.game_over()) statusText.innerText = "Playing"; }, 800);
             }
         } else {
-            const from = String.fromCharCode(97+selectedSquare.col) + (8-selectedSquare.row);
-            const to = String.fromCharCode(97+col) + (8-row);
-            const moveObj = game.move({ from, to, promotion: 'q' });
+            // We have a selected piece; try to move to this square
+            const fromRow = selectedSquare.row;
+            const fromCol = selectedSquare.col;
+            const from = String.fromCharCode(97 + fromCol) + (8 - fromRow);
+            const to = String.fromCharCode(97 + col) + (8 - row);
+            const moveObj = game.move({ from, to, promotion: 'q' }); // auto-queen promotion
             if (moveObj) {
+                // valid move
                 selectedSquare = null;
                 redrawBoard();
-                makeBotMove();
+                // Now it's bot's turn (black)
+                updateUI();
+                // Trigger bot move after short delay
+                if (!game.game_over() && game.turn() === 'b') {
+                    waitingForBot = true;
+                    turnIndicator.innerText = "🤖 BOT'S TURN...";
+                    setTimeout(makeBotMove, 300);
+                }
             } else {
+                // invalid move
                 statusText.innerText = "Invalid move";
                 selectedSquare = null;
                 redrawBoard();
-                setTimeout(() => { if(!game.game_over()) statusText.innerText = "Playing"; }, 800);
+                setTimeout(() => { if (!game.game_over()) statusText.innerText = "Playing"; }, 800);
             }
         }
     }
 
-    // initial draw
-    redrawBoard();
-    // if bot starts? no, white (player) starts, so no initial bot move.
+    // Bot: pick a random legal move
+    function makeBotMove() {
+        if (game.game_over()) {
+            waitingForBot = false;
+            return;
+        }
+        if (game.turn() !== 'b') {
+            waitingForBot = false;
+            updateUI();
+            return;
+        }
+        const moves = game.moves();
+        if (moves.length === 0) {
+            waitingForBot = false;
+            updateUI();
+            return;
+        }
+        const randomIndex = Math.floor(Math.random() * moves.length);
+        const move = moves[randomIndex];
+        game.move(move);
+        redrawBoard();
+        waitingForBot = false;
+        updateUI();
+        // If game not over and still bot's turn? shouldn't happen, but just in case
+        if (!game.game_over() && game.turn() === 'b') {
+            // recursive safety – but normally after a move it becomes white's turn
+            waitingForBot = true;
+            setTimeout(makeBotMove, 200);
+        }
+    }
+
+    // Reset game
+    function resetGame() {
+        game = new Chess();
+        selectedSquare = null;
+        waitingForBot = false;
+        redrawBoard();
+        updateUI();
+        // If by some chance bot should start? no, white starts.
+    }
+
+    // Register reset button
+    document.getElementById('resetBtn').addEventListener('click', resetGame);
+
+    // Initial draw
+    resetGame();
 </script>
 </body>
 </html>
