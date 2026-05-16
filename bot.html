@@ -3,23 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>♞ Chess vs Bot | Tap to Move</title>
+    <title>♞ Chess vs Bot – Tap to Move</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="common.js"></script>
     <style>
-        /* Additional style for legal move indicators (green circles) */
-        .square .move-indicator {
-            width: 30%;
-            height: 30%;
-            background: radial-gradient(circle, #4caf50, #2e7d32);
-            border-radius: 50%;
-            display: block;
-            opacity: 0.9;
-            pointer-events: none;
-        }
-        /* If you prefer a simple green circle overlay without extra div, we'll use pseudo-element */
-        .square.has-legal-move {
+        /* Additional style for green circle indicators */
+        .square {
             position: relative;
         }
         .square.has-legal-move::after {
@@ -34,16 +24,12 @@
             transform: translate(-50%, -50%);
             pointer-events: none;
         }
-        /* Ensure squares are positioned relative */
-        .square {
-            position: relative;
-        }
     </style>
 </head>
 <body>
 <div class="game-container">
     <h1>🤖 CHESS vs BOT</h1>
-    <div class="sub">Tap a piece → green circles show legal moves → tap a circle to move</div>
+    <div class="sub">Tap a white piece → green circles show legal moves → tap a circle to move</div>
 
     <div class="board-wrapper">
         <div id="board"></div>
@@ -61,16 +47,14 @@
 </div>
 
 <script>
-    // Game state
     let game = new Chess();
     let boardDiv = document.getElementById('board');
     let turnIndicator = document.getElementById('turnIndicator');
     let statusText = document.getElementById('statusText');
-    let selectedSquare = null;      // { row, col } of selected piece
-    let currentLegalTargets = [];    // array of [row, col] for legal moves
+    let selectedSquare = null;          // { row, col }
+    let currentLegalTargets = [];       // array of [row, col]
     let waitingForBot = false;
 
-    // Helper: update UI text (turn, check, game over)
     function updateUI() {
         if (game.game_over()) {
             if (game.in_checkmate()) {
@@ -92,77 +76,52 @@
         statusText.innerText = game.in_check() ? "⚠️ CHECK!" : "Playing";
     }
 
-    // Clear all highlights and legal move indicators
     function clearHighlights() {
-        document.querySelectorAll('.square').forEach(sq => {
-            sq.classList.remove('selected');
-            sq.classList.remove('has-legal-move');
-        });
-    }
-
-    // Show legal moves as green circles (using CSS class)
-    function showLegalMoves(targets) {
-        currentLegalTargets = targets;
-        for (let [row, col] of targets) {
-            const idx = row * 8 + col;
-            if (boardDiv.children[idx]) {
-                boardDiv.children[idx].classList.add('has-legal-move');
-            }
+        for (let i = 0; i < boardDiv.children.length; i++) {
+            boardDiv.children[i].classList.remove('has-legal-move');
+            boardDiv.children[i].classList.remove('selected');
         }
     }
 
-    // Redraw board using common.js drawBoard
     function redrawBoard() {
         drawBoard(game, boardDiv, onSquareClick);
-        // After redraw, re-apply selected square highlight if any
         if (selectedSquare) {
             const idx = selectedSquare.row * 8 + selectedSquare.col;
-            if (boardDiv.children[idx]) {
-                boardDiv.children[idx].classList.add('selected');
-            }
-            // also re-show legal moves if still selected
-            if (currentLegalTargets.length > 0) {
-                showLegalMoves(currentLegalTargets);
-            }
+            if (boardDiv.children[idx]) boardDiv.children[idx].classList.add('selected');
+        }
+        if (currentLegalTargets.length > 0) {
+            highlightSquares(boardDiv, currentLegalTargets);
         }
         updateUI();
     }
 
-    // Handle tap/click on a square
     function onSquareClick(row, col) {
         if (game.game_over()) return;
         if (waitingForBot) {
             turnIndicator.innerText = "⏳ Wait for bot...";
             return;
         }
-        const turn = game.turn();
-        const isPlayerTurn = (turn === 'w');
-
-        // If not player's turn, ignore
+        const isPlayerTurn = (game.turn() === 'w');
         if (!isPlayerTurn) {
             turnIndicator.innerText = "⏳ Wait for bot...";
             setTimeout(updateUI, 800);
             return;
         }
 
-        // If we have a selected piece, check if this click is on a legal target
+        // If a piece is selected, check if click is on a legal target
         if (selectedSquare !== null) {
-            // Check if clicked square is one of the legal targets
-            const isLegalTarget = currentLegalTargets.some(([r,c]) => r === row && c === col);
-            if (isLegalTarget) {
-                // Perform the move
+            const isLegal = currentLegalTargets.some(([r,c]) => r === row && c === col);
+            if (isLegal) {
                 const fromRow = selectedSquare.row;
                 const fromCol = selectedSquare.col;
                 const from = String.fromCharCode(97 + fromCol) + (8 - fromRow);
                 const to = String.fromCharCode(97 + col) + (8 - row);
-                const moveObj = game.move({ from, to, promotion: 'q' });
-                if (moveObj) {
-                    // Move successful
+                const move = game.move({ from, to, promotion: 'q' });
+                if (move) {
                     selectedSquare = null;
                     currentLegalTargets = [];
                     redrawBoard();
                     updateUI();
-                    // Trigger bot move if game not over and it's black's turn
                     if (!game.game_over() && game.turn() === 'b') {
                         waitingForBot = true;
                         turnIndicator.innerText = "🤖 BOT'S TURN...";
@@ -171,41 +130,35 @@
                     return;
                 }
             }
-            // If not legal target, clear selection and treat as new selection attempt
+            // If not legal, clear selection and treat as new attempt
             clearHighlights();
             selectedSquare = null;
             currentLegalTargets = [];
-            // Fall through to piece selection logic
         }
 
-        // No selected piece: try to select a piece
+        // No selection: try to select a white piece
         const piece = game.get(row, col);
         if (piece && piece.color === 'w') {
-            // Select this piece
             selectedSquare = { row, col };
             clearHighlights();
-            // highlight the selected square
             const idx = row * 8 + col;
             if (boardDiv.children[idx]) boardDiv.children[idx].classList.add('selected');
-            // compute legal moves for this piece
             const fromAlgebraic = String.fromCharCode(97 + col) + (8 - row);
             const moves = game.moves({ square: fromAlgebraic, verbose: true });
             const targets = moves.map(m => [8 - parseInt(m.to[1]), m.to.charCodeAt(0) - 97]);
             currentLegalTargets = targets;
             if (targets.length > 0) {
-                showLegalMoves(targets);
+                highlightSquares(boardDiv, targets);
             } else {
-                statusText.innerText = "No legal moves for this piece";
+                statusText.innerText = "No legal moves";
                 setTimeout(() => { if (!game.game_over()) statusText.innerText = "Playing"; }, 800);
             }
         } else {
-            // clicked on empty or opponent piece when no selection
             statusText.innerText = "Select your piece";
             setTimeout(() => { if (!game.game_over()) statusText.innerText = "Playing"; }, 800);
         }
     }
 
-    // Bot: pick a random legal move
     function makeBotMove() {
         if (game.game_over()) {
             waitingForBot = false;
@@ -222,23 +175,19 @@
             updateUI();
             return;
         }
-        const randomIndex = Math.floor(Math.random() * moves.length);
-        const move = moves[randomIndex];
-        game.move(move);
-        // Clear any leftover selection from player
+        const randomMove = moves[Math.floor(Math.random() * moves.length)];
+        game.move(randomMove);
         selectedSquare = null;
         currentLegalTargets = [];
         redrawBoard();
         waitingForBot = false;
         updateUI();
-        // If still bot's turn (shouldn't happen), but just in case:
         if (!game.game_over() && game.turn() === 'b') {
             waitingForBot = true;
             setTimeout(makeBotMove, 200);
         }
     }
 
-    // Reset game
     function resetGame() {
         game = new Chess();
         selectedSquare = null;
@@ -246,13 +195,9 @@
         waitingForBot = false;
         redrawBoard();
         updateUI();
-        // If for some reason bot would start? No, white starts.
     }
 
-    // Register reset button
     document.getElementById('resetBtn').addEventListener('click', resetGame);
-
-    // Initial draw
     resetGame();
 </script>
 </body>
