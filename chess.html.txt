@@ -1,0 +1,273 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>♜ Chess Multiplayer | Back4App</title>
+    <style>
+        * { box-sizing: border-box; user-select: none; }
+        body { background: #2c3e2f; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
+        .container { background: #f0d9b5; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; max-width: 600px; width: 100%; }
+        h1 { margin-top: 0; color: #4a2e2a; }
+        #board { display: grid; grid-template-columns: repeat(8, 1fr); aspect-ratio: 1 / 1; background-color: #deb887; border: 2px solid #4a2e2a; margin: 20px auto; max-width: 500px; width: 100%; }
+        .square { display: flex; align-items: center; justify-content: center; font-size: clamp(20px, 6vw, 40px); cursor: pointer; }
+        .square.light { background-color: #f0d9b5; }
+        .square.dark { background-color: #b58863; }
+        .square.highlight { background-color: #7cb518; opacity: 0.8; }
+        .square.selected { background-color: #ffcc44; }
+        #gameInfo, #status { font-size: 1rem; font-weight: bold; margin: 10px 0; }
+        button, input { background: #4a2e2a; color: white; border: none; padding: 8px 16px; margin: 5px; border-radius: 30px; cursor: pointer; font-size: 1rem; }
+        button:hover { background: #6b443e; }
+        input { background: white; color: black; width: 60%; }
+        .hidden { display: none; }
+    </style>
+    <script src="https://unpkg.com/parse/dist/parse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>♜ Chess Multiplayer ♞</h1>
+    <div id="loginScreen">
+        <input type="text" id="playerName" placeholder="Your name" autocomplete="off">
+        <button id="playHumanBtn">👥 Play vs Human</button>
+        <button id="playBotBtn">🤖 Play vs Bot</button>
+    </div>
+    <div id="waitingMsg" class="hidden">⏳ Waiting for opponent...</div>
+    <div id="gameScreen" class="hidden">
+        <div id="gameInfo"></div>
+        <div id="board"></div>
+        <div id="status"></div>
+        <button id="cancelBtn">🏠 Cancel Game</button>
+    </div>
+</div>
+
+<script>
+    // ========== YOUR BACK4APP KEYS (already inserted) ==========
+    const APP_ID = '14jnzWrwPp5umfm7G09W4W1Loezpnw2OQ9BQXsRF';
+    const JS_KEY = 'TEc9Nj7tQzGypzjbIShqoAmN81XIdA6l9tdXzPLv';
+    Parse.initialize(APP_ID, JS_KEY);
+    Parse.serverURL = 'https://parseapi.back4app.com/';
+
+    let currentGame = null;
+    let gameId = null;
+    let playerColor = null;
+    let opponentName = null;
+    let isBotGame = false;
+    let game = new Chess();
+    let selectedSquare = null;
+    let liveQuerySubscription = null;
+
+    const loginScreen = document.getElementById('loginScreen');
+    const gameScreen = document.getElementById('gameScreen');
+    const waitingMsg = document.getElementById('waitingMsg');
+    const boardDiv = document.getElementById('board');
+    const gameInfo = document.getElementById('gameInfo');
+    const statusDiv = document.getElementById('status');
+
+    function drawBoard() {
+        boardDiv.innerHTML = '';
+        const board = game.board();
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                const square = document.createElement('div');
+                square.className = `square ${(i + j) % 2 === 0 ? 'light' : 'dark'}`;
+                const piece = board[i][j];
+                if (piece) {
+                    const pieceMap = { 'k':'♔','q':'♕','r':'♖','b':'♗','n':'♘','p':'♙','K':'♚','Q':'♛','R':'♜','B':'♝','N':'♞','P':'♟' };
+                    square.textContent = pieceMap[piece.type + (piece.color === 'w' ? 'w' : 'b')];
+                }
+                square.dataset.row = i;
+                square.dataset.col = j;
+                square.addEventListener('click', () => onSquareClick(i, j));
+                boardDiv.appendChild(square);
+            }
+        }
+    }
+
+    function highlightSquares(squares) {
+        document.querySelectorAll('.square').forEach(sq => sq.classList.remove('highlight'));
+        for (const [row, col] of squares) {
+            const idx = row * 8 + col;
+            if (boardDiv.children[idx]) boardDiv.children[idx].classList.add('highlight');
+        }
+    }
+
+    function clearSelected() {
+        document.querySelectorAll('.square').forEach(sq => sq.classList.remove('selected'));
+        selectedSquare = null;
+    }
+
+    async function onSquareClick(row, col) {
+        if (!currentGame || game.game_over()) return;
+        const turn = game.turn();
+        if ((turn === 'w' && playerColor !== 'white') || (turn === 'b' && playerColor !== 'black')) {
+            statusDiv.innerText = "Not your turn!";
+            return;
+        }
+        if (selectedSquare === null) {
+            const piece = game.get(row, col);
+            if (piece && piece.color === turn) {
+                selectedSquare = { row, col };
+                clearSelected();
+                const idx = row * 8 + col;
+                if (boardDiv.children[idx]) boardDiv.children[idx].classList.add('selected');
+                const moves = game.moves({ square: String.fromCharCode(97+col) + (8-row), verbose: true });
+                const targets = moves.map(m => [8 - parseInt(m.to[1]), m.to.charCodeAt(0) - 97]);
+                highlightSquares(targets);
+            } else {
+                statusDiv.innerText = "Select your piece.";
+            }
+        } else {
+            const from = String.fromCharCode(97 + selectedSquare.col) + (8 - selectedSquare.row);
+            const to = String.fromCharCode(97 + col) + (8 - row);
+            const moveObj = game.move({ from, to, promotion: 'q' });
+            if (moveObj) {
+                clearSelected();
+                drawBoard();
+                await sendMoveToBackend(game.fen(), game.turn());
+            } else {
+                statusDiv.innerText = "Invalid move.";
+                clearSelected();
+                drawBoard();
+            }
+        }
+    }
+
+    async function sendMoveToBackend(fen, turn) {
+        if (!currentGame) return;
+        currentGame.set('fen', fen);
+        currentGame.set('turn', turn);
+        if (game.game_over()) {
+            currentGame.set('status', 'gameover');
+            if (game.in_checkmate()) {
+                const winner = (game.turn() === 'w') ? 'black' : 'white';
+                currentGame.set('winner', winner);
+            } else {
+                currentGame.set('winner', 'draw');
+            }
+        }
+        await currentGame.save();
+    }
+
+    function subscribeToGame(gameObj) {
+        if (liveQuerySubscription) liveQuerySubscription.unsubscribe();
+        const query = new Parse.Query('Game');
+        query.equalTo('objectId', gameObj.id);
+        liveQuerySubscription = query.subscribe();
+        liveQuerySubscription.on('update', (object) => {
+            if (object.id !== currentGame?.id) return;
+            const newFen = object.get('fen');
+            const newTurn = object.get('turn');
+            if (newFen !== game.fen()) {
+                game.load(newFen);
+                drawBoard();
+                const turnMsg = game.turn() === 'w' ? 'White' : 'Black';
+                statusDiv.innerText = game.game_over() ? (game.in_checkmate() ? 'Checkmate!' : 'Game over') : `${turnMsg} to move`;
+                if (isBotGame && !game.game_over()) {
+                    const isBotTurn = (playerColor === 'white' && game.turn() === 'b') ||
+                                      (playerColor === 'black' && game.turn() === 'w');
+                    if (isBotTurn) setTimeout(() => makeBotMove(), 300);
+                }
+            }
+        });
+    }
+
+    async function makeBotMove() {
+        if (!currentGame || game.game_over()) return;
+        const turn = game.turn();
+        if ((turn === 'w' && playerColor === 'white') || (turn === 'b' && playerColor === 'black')) return;
+        const moves = game.moves();
+        if (moves.length === 0) return;
+        const randomMove = moves[Math.floor(Math.random() * moves.length)];
+        const moveObj = game.move(randomMove);
+        if (moveObj) {
+            drawBoard();
+            await sendMoveToBackend(game.fen(), game.turn());
+        }
+    }
+
+    async function createGame(isBot, playerName) {
+        const GameClass = Parse.Object.extend('Game');
+        const newGame = new GameClass();
+        const newGameId = Math.random().toString(36).substring(2, 8);
+        newGame.set('gameId', newGameId);
+        newGame.set('fen', 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+        newGame.set('turn', 'w');
+        if (isBot) {
+            newGame.set('status', 'active');
+            newGame.set('players', { white: playerName, black: '🤖 Bot' });
+        } else {
+            newGame.set('status', 'waiting');
+            newGame.set('players', { white: playerName, black: null });
+        }
+        await newGame.save();
+        return newGame;
+    }
+
+    async function joinWaitingGame(playerName) {
+        const query = new Parse.Query('Game');
+        query.equalTo('status', 'waiting');
+        query.doesNotExist('players.black');
+        const waiting = await query.first();
+        if (!waiting) return null;
+        waiting.set('players', { white: waiting.get('players').white, black: playerName });
+        waiting.set('status', 'active');
+        await waiting.save();
+        return waiting;
+    }
+
+    document.getElementById('playHumanBtn').onclick = async () => {
+        const name = document.getElementById('playerName').value.trim() || 'Anonymous';
+        let gameObj = await joinWaitingGame(name);
+        let assignedColor = 'black';
+        let opponent = '';
+        if (!gameObj) {
+            gameObj = await createGame(false, name);
+            assignedColor = 'white';
+            opponent = 'Waiting...';
+            waitingMsg.classList.remove('hidden');
+            gameScreen.classList.add('hidden');
+        } else {
+            opponent = gameObj.get('players').white;
+            waitingMsg.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+        }
+        currentGame = gameObj;
+        gameId = gameObj.get('gameId');
+        playerColor = assignedColor;
+        isBotGame = false;
+        game.load(gameObj.get('fen'));
+        drawBoard();
+        gameInfo.innerText = `You: ${name} (${playerColor}) vs ${opponent}`;
+        statusDiv.innerText = `${game.turn() === 'w' ? 'White' : 'Black'} to move`;
+        loginScreen.classList.add('hidden');
+        gameScreen.classList.remove('hidden');
+        subscribeToGame(gameObj);
+    };
+
+    document.getElementById('playBotBtn').onclick = async () => {
+        const name = document.getElementById('playerName').value.trim() || 'Anonymous';
+        const gameObj = await createGame(true, name);
+        currentGame = gameObj;
+        gameId = gameObj.get('gameId');
+        playerColor = 'white';
+        isBotGame = true;
+        game.load(gameObj.get('fen'));
+        drawBoard();
+        gameInfo.innerText = `You (White) vs 🤖 Bot`;
+        statusDiv.innerText = `White to move`;
+        loginScreen.classList.add('hidden');
+        gameScreen.classList.remove('hidden');
+        waitingMsg.classList.add('hidden');
+        subscribeToGame(gameObj);
+    };
+
+    document.getElementById('cancelBtn').onclick = () => {
+        location.reload();
+    };
+</script>
+</body>
+</html>
