@@ -1,4 +1,4 @@
-// common.js – shared chess board drawing functions
+// common.js – board drawing and helpers
 
 function getPieceImageSrc(piece) {
     if (!piece) return null;
@@ -29,11 +29,6 @@ function drawBoard(game, boardDiv, clickHandler) {
                 img.src = getPieceImageSrc(piece);
                 img.alt = `${piece.color} ${piece.type}`;
                 img.className = 'piece-img';
-                img.style.width = '80%';
-                img.style.height = '80%';
-                img.style.objectFit = 'contain';
-                img.style.display = 'block';
-                img.style.pointerEvents = 'none';
                 img.onerror = () => {
                     const fallback = document.createTextNode(piece.color === 'w' ? '♙' : '♟');
                     square.innerHTML = '';
