@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NIGHTFLIX – Stream After Dark</title>
+    <title>NIGHTFLIX – AI-Generated Knockoff Streaming</title>
     <style>
         * {
             margin: 0;
@@ -39,7 +39,6 @@
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            letter-spacing: 2px;
         }
 
         .nav-links {
@@ -61,7 +60,6 @@
         .main-content {
             padding-top: 80px;
             padding-bottom: 2rem;
-            min-height: 100vh;
         }
 
         .player-section {
@@ -103,7 +101,6 @@
         .row-title {
             font-size: 1.3rem;
             font-weight: bold;
-            color: #e0e0e0;
         }
 
         .show-list {
@@ -152,8 +149,16 @@
 
         .show-title-card {
             padding: 0.5rem;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             text-align: center;
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            background: #c084fc33;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 5px;
         }
 
         .upload-section {
@@ -187,7 +192,6 @@
             background: #6a0dad;
             color: white;
             cursor: pointer;
-            transition: background 0.2s;
         }
 
         button:hover {
@@ -232,7 +236,7 @@
 
         <div class="row" id="defaultRow">
             <div class="row-header">
-                <div class="row-title">🌙 NIGHTFLIX ORIGINALS</div>
+                <div class="row-title">🤖 AI-GENERATED KNOCKOFFS <span class="badge">watch at your own risk</span></div>
             </div>
             <div class="show-list" id="defaultShowsList"></div>
         </div>
@@ -245,30 +249,29 @@
         </div>
 
         <div class="upload-section">
-            <h3>➕ ADD YOUR OWN VIDEO</h3>
+            <h3>➕ ADD YOUR OWN KNOCKOFF</h3>
             <div class="upload-row">
-                <input type="text" id="videoTitle" placeholder="Video Title">
+                <input type="text" id="videoTitle" placeholder="Knockoff title (e.g. 'The Mandalorian't')">
                 <input type="text" id="videoDesc" placeholder="Description">
             </div>
             <div class="upload-row">
-                <input type="file" id="videoFile" accept="video/mp4,video/webm,video/ogg">
-                <span style="color: #888;">or</span>
-                <input type="text" id="videoUrl" placeholder="https://example.com/video.mp4">
+                <input type="file" id="videoFile" accept="video/mp4,video/webm">
+                <span style="color:#888;">or</span>
+                <input type="text" id="videoUrl" placeholder="Paste video URL (mp4)">
             </div>
             <button onclick="addVideo()">🌙 ADD TO NIGHTFLIX</button>
-            <p style="font-size: 0.7rem; color: #666; margin-top: 0.5rem;">✓ Supports MP4, WebM, OGV | ✓ Paste any direct video URL</p>
         </div>
 
         <div class="footer">
-            <p>🌙 NIGHTFLIX — Stream after dark. Regret by dawn.</p>
+            <p>🌙 NIGHTFLIX — "Stream after dark. Regret by dawn."</p>
+            <p>All videos are real and working. The shows are fake. That's the joke.</p>
         </div>
     </div>
 
     <script>
-        // ===== WORKING VIDEOS (all tested and working) =====
+        // ===== REAL WORKING VIDEOS with FAKE AI-GENERATED SHOW NAMES =====
         let userVideos = [];
 
-        // Load saved videos
         function loadUserVideos() {
             const saved = localStorage.getItem('nightflix_user_videos');
             if (saved) {
@@ -282,63 +285,63 @@
             localStorage.setItem('nightflix_user_videos', JSON.stringify(userVideos));
         }
 
-        // DEFAULT WORKING VIDEOS - ALL CONFIRMED WORKING!
-        const defaultVideos = [
+        // REAL WORKING VIDEOS + FAKE AI KNOCKOFF NAMES
+        const fakeShows = [
             {
-                id: 'v1',
-                title: '🎬 Big Buck Bunny',
-                desc: 'A giant rabbit fights back - Award winning short film',
+                id: 'ai1',
+                title: 'Stranger Things But The Demogorgon Is Just A Tired Dad',
+                desc: 'AI generated: A sleepy father in a gray robe haunts the kids of Hawkins',
                 src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-                thumbnail: '🎬'
+                emoji: '👨‍💤'
             },
             {
-                id: 'v2',
-                title: '🔥 For Bigger Blazes',
-                desc: 'Action-packed adventure',
+                id: 'ai2',
+                title: 'The Crown\'t: Monarch Who Forgot Wi-Fi Password',
+                desc: 'AI generated: Queen Elizabeth tries to reset the router for 47 minutes',
                 src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-                thumbnail: '🔥'
+                emoji: '👑📶'
             },
             {
-                id: 'v3',
-                title: '🏃 For Bigger Escape',
-                desc: 'High speed chase through the city',
+                id: 'ai3',
+                title: 'The Mandalorian\'t: Bounty Hunter With A Kitchen Strainer',
+                desc: 'AI generated: This is not the way. This is just embarrassing.',
                 src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-                thumbnail: '🏃'
+                emoji: '🥣'
             },
             {
-                id: 'v4',
-                title: '🎢 For Bigger Fun',
-                desc: 'Roller coaster of emotions',
+                id: 'ai4',
+                title: 'Squid Game But Everyone Is Just Mildly Inconvenienced',
+                desc: 'AI generated: Red light, green light but you just have to wait 3 extra seconds',
                 src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFunrides.mp4',
-                thumbnail: '🎢'
+                emoji: '🦑😐'
             },
             {
-                id: 'v5',
-                title: '🚗 Subaru Outback',
-                desc: 'On street and dirt - 4K test footage',
+                id: 'ai5',
+                title: 'Bridgerton\'t: Everyone Speaks Only In Emojis',
+                desc: 'AI generated: "👑❤️🐝" somehow counts as dialogue',
                 src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
-                thumbnail: '🚗'
+                emoji: '👑🤔'
             },
             {
-                id: 'v6',
-                title: '🌊 What Car?',
-                desc: 'Car review and test drive',
+                id: 'ai6',
+                title: 'Wednesday\'t: She\'s Just Mildly Annoyed',
+                desc: 'AI generated: No murder. Just sighing and rolling eyes for 8 episodes',
                 src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCar.mp4',
-                thumbnail: '🌊'
+                emoji: '🙄'
             },
             {
-                id: 'v7',
-                title: '💃 Tears of Steel',
-                desc: 'Sci-fi short film (Blender Foundation)',
+                id: 'ai7',
+                title: 'The Last of Us\'t: Fungus That Just Makes You Sneeze',
+                desc: 'AI generated: Post-apocalyptic allergy season',
                 src: 'https://download.blender.org/peach/trailer/trailer_400p.ogg',
-                thumbnail: '💃'
+                emoji: '🤧🍄'
             },
             {
-                id: 'v8',
-                title: '🐧 Sintel Trailer',
-                desc: 'Epic fantasy short film',
+                id: 'ai8',
+                title: 'House of the Dragon\'t: Medieval Candle-Measuring Contest',
+                desc: 'AI generated: Who has the biggest, shiniest candle? Riveting.',
                 src: 'https://download.blender.org/sintel/sintel_trailer-1080p.mp4',
-                thumbnail: '🐧'
+                emoji: '🕯️👑'
             }
         ];
 
@@ -354,14 +357,10 @@
             videoSource.src = video.src;
             videoPlayer.load();
             currentTitle.innerText = video.title;
-            currentDesc.innerText = video.desc || 'Now streaming on NIGHTFLIX';
+            currentDesc.innerText = video.desc;
             playerSection.style.display = 'block';
             
-            // Try to play
-            videoPlayer.play().catch(e => {
-                console.log('Autoplay blocked, user needs to click play');
-            });
-            
+            videoPlayer.play().catch(e => console.log('Click play to start'));
             playerSection.scrollIntoView({ behavior: 'smooth' });
         }
 
@@ -370,7 +369,7 @@
             container.innerHTML = '';
             
             if (shows.length === 0) {
-                container.innerHTML = '<div class="empty-message" style="color:#666; text-align:center; padding:1rem;">✨ No videos yet. Upload your own above!</div>';
+                container.innerHTML = '<div style="color:#666; text-align:center; padding:1rem;">✨ No knockoffs yet. Add your own above!</div>';
                 return;
             }
 
@@ -381,11 +380,12 @@
                 
                 const thumbDiv = document.createElement('div');
                 thumbDiv.className = 'show-thumb';
-                thumbDiv.innerHTML = show.thumbnail || '🎬';
+                thumbDiv.innerHTML = show.emoji || '🎬';
+                thumbDiv.style.fontSize = '3rem';
                 
                 const titleDiv = document.createElement('div');
                 titleDiv.className = 'show-title-card';
-                titleDiv.innerText = show.title.length > 25 ? show.title.slice(0,25)+'...' : show.title;
+                titleDiv.innerText = show.title.length > 35 ? show.title.slice(0,35)+'...' : show.title;
                 
                 card.appendChild(thumbDiv);
                 card.appendChild(titleDiv);
@@ -394,7 +394,7 @@
         }
 
         function renderAllShows() {
-            renderShows('defaultShowsList', defaultVideos);
+            renderShows('defaultShowsList', fakeShows);
             renderShows('uploadedShowsList', userVideos);
             
             if (currentFilter === 'my') {
@@ -423,78 +423,59 @@
             const urlInput = document.getElementById('videoUrl').value.trim();
 
             if (!title) {
-                alert('Please enter a video title');
+                alert('Enter a knockoff title!');
                 return;
             }
 
             if (!fileInput.files[0] && !urlInput) {
-                alert('Please select a video file OR paste a video URL');
+                alert('Upload a video file or paste a URL');
                 return;
             }
 
             if (fileInput.files[0]) {
                 const file = fileInput.files[0];
-                if (!file.type.startsWith('video/')) {
-                    alert('Please select a valid video file (MP4, WebM, OGG)');
-                    return;
-                }
-                
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const newVideo = {
+                    userVideos.push({
                         id: Date.now(),
                         title: title,
-                        desc: desc || 'Your uploaded video',
+                        desc: desc || 'Your custom knockoff',
                         src: e.target.result,
-                        thumbnail: '📹',
+                        emoji: '📹',
                         isUser: true
-                    };
-                    userVideos.push(newVideo);
+                    });
                     saveUserVideos();
                     renderAllShows();
-                    clearUploadForm();
-                    alert('✅ Video added! Find it in "My Uploads"');
+                    clearForm();
+                    alert('✅ Knockoff added!');
                 };
                 reader.readAsDataURL(file);
             } else if (urlInput) {
-                const newVideo = {
+                userVideos.push({
                     id: Date.now(),
                     title: title,
-                    desc: desc || 'Your uploaded video',
+                    desc: desc || 'Your custom knockoff',
                     src: urlInput,
-                    thumbnail: '📹',
+                    emoji: '🔗',
                     isUser: true
-                };
-                userVideos.push(newVideo);
+                });
                 saveUserVideos();
                 renderAllShows();
-                clearUploadForm();
-                alert('✅ Video URL added!');
+                clearForm();
+                alert('✅ Knockoff URL added!');
             }
         }
 
-        function clearUploadForm() {
+        function clearForm() {
             document.getElementById('videoTitle').value = '';
             document.getElementById('videoDesc').value = '';
             document.getElementById('videoFile').value = '';
             document.getElementById('videoUrl').value = '';
         }
 
-        // Auto-play first video as preview
-        function autoPlayFirstVideo() {
-            setTimeout(() => {
-                if (defaultVideos.length > 0) {
-                    playVideo(defaultVideos[0]);
-                }
-            }, 500);
-        }
-
-        // Initialize
         loadUserVideos();
         renderAllShows();
-        autoPlayFirstVideo();
 
-        // Make functions global
         window.addVideo = addVideo;
         window.showAllShows = showAllShows;
         window.showMyShows = showMyShows;
