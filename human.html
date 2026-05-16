@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Chess Multiplayer</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/parse/dist/parse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script src="common.js"></script>
+</head>
+<body>
+<div class="game-container">
+    <h1>👥 CHESS vs HUMAN</h1>
+    <div class="sub">real‑time multiplayer</div>
+    <div id="loginArea">
+        <input type="text" id="playerName" placeholder="Your name">
+        <button id="playBtn">🎮 Start / Join Game</button>
+    </div>
+    <div id="waitingMsg" class="waiting-message hidden">⏳ Waiting for opponent...</div>
+    <div id="gameArea" class="hidden">
+        <div class="board-wrapper">
+            <div id="board"></div>
+        </div>
+        <div class="stats-panel">
+            <div class="info-card">👤 YOU: <span id="playerColorTag">—</span></div>
+            <div class="info-card">🎯 TURN: <span id="turnIndicator">—</span></div>
+        </div>
+        <div class="center">
+            <button id="cancelBtn">🏠 Exit</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Back4App keys (yours)
+    const APP_ID = '14jnzWrwPp5umfm7G09W4W1Loezpnw2OQ9BQXsRF';
+    const JS_KEY = 'TEc9Nj7tQzGypzjbIShqoAmN81XIdA6l9tdXzPLv';
+    Parse.initialize(APP_ID, JS_KEY);
+    Parse.serverURL = 'https://parseapi.back4app.com/';
+
+    let currentGame = null;
+    let playerColor = null;
+    let game = new Chess();
+    let selectedSquare = null;
+    let liveQuerySubscription = null;
+
+    const loginArea = document.getElementById('loginArea');
+    const waitingMsg = document.getElementById('waitingMsg');
+    const gameArea = document.getElementById('gameArea');
+    const boardDiv = document.getElementById('board');
+    const playerColorTag = document.getElementById('playerColorTag');
+    const turnIndicator = document.getElementById('turnIndicator');
+
+    function updateTurnDisplay() {
+        if (!currentGame) return;
+        const turn = game.turn();
+        const isPlayersTurn = (turn === 'w' && playerColor === 'white') || (turn === 'b' && playerColor === 'black');
+        turnIndicator.innerText = isPlayersTurn ? "✅ YOUR TURN" : "⏳ OPPONENT'S TURN";
+        playerColorTag.innerText = playerColor === 'white' ? 'White' : 'Black';
+    }
+
+    function redrawBoard() {
+        drawBoard(game, boardDiv, onSquareClick);
+        updateTurnDisplay();
+    }
+
+    async function onSquareClick(row, col) {
+        if (!currentGame || game.game_over()) return;
+        const turn = game.turn();
+        const isPlayersTurn = (turn === 'w' && playerColor === 'white') || (turn === 'b' && playerColor === 'black');
+        if (!isPlayersTurn) {
+            turnIndicator.innerText = "⏳ OPPONENT'S TURN";
+            setTimeout(updateTurnDisplay, 800);
+            return;
+        }
+        if (selectedSquare === null) {
+            const piece = game.get(row, col);
+            if (piece && piece.color === turn) {
+                selectedSquare = { row, col };
+                clearSelected(boardDiv);
+                const idx = row*8+col;
+                if (boardDiv.children[idx]) boardDiv.children[idx].classList.add('selected');
+                const fromAlg = String.fromCharCode(97+col) + (8-row);
+                const moves = game.moves({ square: fromAlg, verbose: true });
+                const targets = moves.map(m => [8 - parseInt(m.to[1]), m.to.charCodeAt(0)-97]);
+                highlightSquares(boardDiv, targets);
+            } else {
+                turnIndicator.innerText = "❌ Select your piece";
+                setTimeout(updateTurnDisplay, 800);
+            }
+        } else {
+            const from = String.fromCharCode(97+selectedSquare.col) + (8-selectedSquare.row);
+            const to = String.fromCharCode(97+col) + (8-row);
+            const moveObj = game.move({ from, to, promotion: 'q' });
+            if (moveObj) {
+                selectedSquare = null;
+                redrawBoard();
+                await sendMove(game.fen(), game.turn());
+            } else {
+                turnIndicator.innerText = "❌ Invalid move";
+                selectedSquare = null;
+                redrawBoard();
+                setTimeout(updateTurnDisplay, 800);
+            }
+        }
+    }
+
+    async function sendMove(fen, turn) {
+        if (!currentGame) return;
+        currentGame.set('fen', fen);
+        currentGame.set('turn', turn);
+        await currentGame.save();
+    }
+
+    function subscribeToGame(obj) {
+        if (liveQuerySubscription) liveQuerySubscription.unsubscribe();
+        const query = new Parse.Query('Game');
+        query.equalTo('objectId', obj.id);
+        liveQuerySubscription = query.subscribe();
+        liveQuerySubscription.on('update', (updated) => {
+            if (updated.id !== currentGame?.id) return;
+            const newFen = updated.get('fen');
+            const newTurn = updated.get('turn');
+            if (newFen !== game.fen()) {
+                game.load(newFen);
+                redrawBoard();
+                updateTurnDisplay();
+            }
+        });
+    }
+
+    async function createGame(playerName) {
+        const GameClass = Parse.Object.extend('Game');
+        const newGame = new GameClass();
+        const gameId = Math.random().toString(36).substring(2,8);
+        newGame.set('gameId', gameId);
+        newGame.set('fen', 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
+        newGame.set('turn', 'w');
+        newGame.set('status', 'waiting');
+        newGame.set('players', { white: playerName, black: null });
+        await newGame.save();
+        return newGame;
+    }
+
+    async function joinGame(playerName) {
+        const query = new Parse.Query('Game');
+        query.equalTo('status', 'waiting');
+        query.doesNotExist('players.black');
+        const waiting = await query.first();
+        if (!waiting) return null;
+        waiting.set('players', { white: waiting.get('players').white, black: playerName });
+        waiting.set('status', 'active');
+        await waiting.save();
+        return waiting;
+    }
+
+    document.getElementById('playBtn').onclick = async () => {
+        const name = document.getElementById('playerName').value.trim() || 'Guest';
+        let gameObj = await joinGame(name);
+        let assignedColor = 'black';
+        let msg = '';
+        if (!gameObj) {
+            gameObj = await createGame(name);
+            assignedColor = 'white';
+            msg = 'Waiting for opponent...';
+            waitingMsg.classList.remove('hidden');
+            gameArea.classList.add('hidden');
+        } else {
+            msg = 'Game started! You are black.';
+            waitingMsg.classList.add('hidden');
+            gameArea.classList.remove('hidden');
+        }
+        currentGame = gameObj;
+        playerColor = assignedColor;
+        game.load(gameObj.get('fen'));
+        redrawBoard();
+        loginArea.classList.add('hidden');
+        gameArea.classList.remove('hidden');
+        subscribeToGame(gameObj);
+        if (msg) alert(msg);
+    };
+
+    document.getElementById('cancelBtn').onclick = () => location.href = 'index.html';
+</script>
+</body>
+</html>
