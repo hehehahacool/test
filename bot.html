@@ -3,33 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>♞ Chess vs Bot – Tap to Move</title>
+    <title>♞ Chess vs Bot | Tap to Move</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="common.js"></script>
-    <style>
-        /* Additional style for green circle indicators */
-        .square {
-            position: relative;
-        }
-        .square.has-legal-move::after {
-            content: '';
-            position: absolute;
-            width: 30%;
-            height: 30%;
-            background: radial-gradient(circle, #4caf50, #2e7d32);
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-        }
-    </style>
 </head>
 <body>
 <div class="game-container">
     <h1>🤖 CHESS vs BOT</h1>
-    <div class="sub">Tap a white piece → green circles show legal moves → tap a circle to move</div>
+    <div class="sub">Tap a white piece → green circles show where it can move → tap a green circle to move</div>
 
     <div class="board-wrapper">
         <div id="board"></div>
@@ -48,11 +30,11 @@
 
 <script>
     let game = new Chess();
-    let boardDiv = document.getElementById('board');
-    let turnIndicator = document.getElementById('turnIndicator');
-    let statusText = document.getElementById('statusText');
-    let selectedSquare = null;          // { row, col }
-    let currentLegalTargets = [];       // array of [row, col]
+    const boardDiv = document.getElementById('board');
+    const turnIndicator = document.getElementById('turnIndicator');
+    const statusText = document.getElementById('statusText');
+    let selectedPieceSquare = null;
+    let currentLegalTargets = [];
     let waitingForBot = false;
 
     function updateUI() {
@@ -76,7 +58,7 @@
         statusText.innerText = game.in_check() ? "⚠️ CHECK!" : "Playing";
     }
 
-    function clearHighlights() {
+    function clearAllHighlights() {
         for (let i = 0; i < boardDiv.children.length; i++) {
             boardDiv.children[i].classList.remove('has-legal-move');
             boardDiv.children[i].classList.remove('selected');
@@ -85,8 +67,8 @@
 
     function redrawBoard() {
         drawBoard(game, boardDiv, onSquareClick);
-        if (selectedSquare) {
-            const idx = selectedSquare.row * 8 + selectedSquare.col;
+        if (selectedPieceSquare) {
+            const idx = selectedPieceSquare.row * 8 + selectedPieceSquare.col;
             if (boardDiv.children[idx]) boardDiv.children[idx].classList.add('selected');
         }
         if (currentLegalTargets.length > 0) {
@@ -108,17 +90,16 @@
             return;
         }
 
-        // If a piece is selected, check if click is on a legal target
-        if (selectedSquare !== null) {
+        if (selectedPieceSquare !== null) {
             const isLegal = currentLegalTargets.some(([r,c]) => r === row && c === col);
             if (isLegal) {
-                const fromRow = selectedSquare.row;
-                const fromCol = selectedSquare.col;
-                const from = String.fromCharCode(97 + fromCol) + (8 - fromRow);
-                const to = String.fromCharCode(97 + col) + (8 - row);
-                const move = game.move({ from, to, promotion: 'q' });
+                const fromRow = selectedPieceSquare.row;
+                const fromCol = selectedPieceSquare.col;
+                const fromAlgebraic = String.fromCharCode(97 + fromCol) + (8 - fromRow);
+                const toAlgebraic = String.fromCharCode(97 + col) + (8 - row);
+                const move = game.move({ from: fromAlgebraic, to: toAlgebraic, promotion: 'q' });
                 if (move) {
-                    selectedSquare = null;
+                    selectedPieceSquare = null;
                     currentLegalTargets = [];
                     redrawBoard();
                     updateUI();
@@ -130,32 +111,36 @@
                     return;
                 }
             }
-            // If not legal, clear selection and treat as new attempt
-            clearHighlights();
-            selectedSquare = null;
+            clearAllHighlights();
+            selectedPieceSquare = null;
             currentLegalTargets = [];
         }
 
-        // No selection: try to select a white piece
         const piece = game.get(row, col);
         if (piece && piece.color === 'w') {
-            selectedSquare = { row, col };
-            clearHighlights();
+            selectedPieceSquare = { row, col };
+            clearAllHighlights();
             const idx = row * 8 + col;
             if (boardDiv.children[idx]) boardDiv.children[idx].classList.add('selected');
             const fromAlgebraic = String.fromCharCode(97 + col) + (8 - row);
             const moves = game.moves({ square: fromAlgebraic, verbose: true });
-            const targets = moves.map(m => [8 - parseInt(m.to[1]), m.to.charCodeAt(0) - 97]);
+            const targets = moves.map(m => {
+                const toRow = 8 - parseInt(m.to[1]);
+                const toCol = m.to.charCodeAt(0) - 97;
+                return [toRow, toCol];
+            });
             currentLegalTargets = targets;
             if (targets.length > 0) {
                 highlightSquares(boardDiv, targets);
+                statusText.innerText = `Tap a green circle to move`;
+                setTimeout(() => { if (!game.game_over()) statusText.innerText = game.in_check() ? "⚠️ CHECK!" : "Playing"; }, 1500);
             } else {
-                statusText.innerText = "No legal moves";
-                setTimeout(() => { if (!game.game_over()) statusText.innerText = "Playing"; }, 800);
+                statusText.innerText = "This piece has no legal moves";
+                setTimeout(() => { if (!game.game_over()) statusText.innerText = "Playing"; }, 1000);
             }
         } else {
-            statusText.innerText = "Select your piece";
-            setTimeout(() => { if (!game.game_over()) statusText.innerText = "Playing"; }, 800);
+            statusText.innerText = "Select your piece (white)";
+            setTimeout(() => { if (!game.game_over()) statusText.innerText = "Playing"; }, 1000);
         }
     }
 
@@ -177,7 +162,7 @@
         }
         const randomMove = moves[Math.floor(Math.random() * moves.length)];
         game.move(randomMove);
-        selectedSquare = null;
+        selectedPieceSquare = null;
         currentLegalTargets = [];
         redrawBoard();
         waitingForBot = false;
@@ -190,7 +175,7 @@
 
     function resetGame() {
         game = new Chess();
-        selectedSquare = null;
+        selectedPieceSquare = null;
         currentLegalTargets = [];
         waitingForBot = false;
         redrawBoard();
