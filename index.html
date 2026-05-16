@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>♞ Chess Royale | Multiplayer + Bot</title>
+    <title>♞ Chess Royale | Image Pieces</title>
     <style>
         * {
             box-sizing: border-box;
@@ -16,7 +16,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             margin: 0;
             padding: 20px;
         }
@@ -50,7 +50,6 @@
             margin-bottom: 16px;
         }
 
-        /* Board wrapper - fixed size */
         .board-wrapper {
             background: #2d2b26;
             padding: 10px;
@@ -76,10 +75,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: min(6vw, 48px);
-            font-weight: 500;
             transition: 0.1s;
-            font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', 'Helvetica Neue', sans-serif;
             cursor: pointer;
         }
 
@@ -97,6 +93,13 @@
         .square.selected {
             background-color: #f3b33d;
             box-shadow: inset 0 0 0 4px #ffdd99;
+        }
+
+        .piece-img {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+            pointer-events: none;
         }
 
         .stats-panel {
@@ -196,7 +199,7 @@
             <div id="board"></div>
         </div>
         <div class="stats-panel">
-            <div class="info-card">👤 YOU: <span id="playerColorTag">—</span></div>
+            <div class="info-card">🧑‍🎤 YOU: <span id="playerColorTag">—</span></div>
             <div class="info-card">🎯 TURN: <span id="turnIndicator">—</span></div>
             <div class="info-card">🏆 STATUS: <span id="gameStatusText">active</span></div>
         </div>
@@ -207,11 +210,27 @@
 </div>
 
 <script>
-    // Back4App keys (your keys)
+    // ========== BACK4APP KEYS (yours) ==========
     const APP_ID = '14jnzWrwPp5umfm7G09W4W1Loezpnw2OQ9BQXsRF';
     const JS_KEY = 'TEc9Nj7tQzGypzjbIShqoAmN81XIdA6l9tdXzPLv';
     Parse.initialize(APP_ID, JS_KEY);
     Parse.serverURL = 'https://parseapi.back4app.com/';
+
+    // ------------------- IMAGE PATHS -------------------
+    function getPieceImageSrc(piece) {
+        if (!piece) return null;
+        const colorPrefix = piece.color === 'w' ? 'white' : 'black';
+        let pieceName = '';
+        switch (piece.type) {
+            case 'k': pieceName = 'king'; break;
+            case 'q': pieceName = 'queen'; break;
+            case 'r': pieceName = 'rook'; break;
+            case 'b': pieceName = 'bishop'; break;
+            case 'n': pieceName = 'knight'; break;
+            case 'p': pieceName = 'pawn'; break;
+        }
+        return `${colorPrefix}${pieceName}.png`;
+    }
 
     let currentGame = null;
     let playerColor = null;
@@ -228,16 +247,6 @@
     const turnIndicator = document.getElementById('turnIndicator');
     const gameStatusText = document.getElementById('gameStatusText');
 
-    // Unicode chess pieces (large and clear)
-    function pieceSymbol(piece) {
-        if (!piece) return '';
-        const map = {
-            'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟',
-            'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙'
-        };
-        return map[piece.type + (piece.color === 'w' ? 'w' : 'b')];
-    }
-
     function drawBoard() {
         boardDiv.innerHTML = '';
         const board = game.board();
@@ -247,10 +256,17 @@
                 square.className = `square ${(i + j) % 2 === 0 ? 'light' : 'dark'}`;
                 const piece = board[i][j];
                 if (piece) {
-                    square.textContent = pieceSymbol(piece);
-                    // optional tooltip
-                    const names = { k:'King',q:'Queen',r:'Rook',b:'Bishop',n:'Knight',p:'Pawn' };
-                    square.title = `${piece.color === 'w' ? 'White' : 'Black'} ${names[piece.type]}`;
+                    const img = document.createElement('img');
+                    const src = getPieceImageSrc(piece);
+                    img.src = src;
+                    img.alt = `${piece.color} ${piece.type}`;
+                    img.className = 'piece-img';
+                    // if image fails to load, show Unicode fallback
+                    img.onerror = () => {
+                        const fallback = document.createTextNode(piece.color === 'w' ? '♙' : '♟');
+                        square.appendChild(fallback);
+                    };
+                    square.appendChild(img);
                 }
                 square.dataset.row = i;
                 square.dataset.col = j;
