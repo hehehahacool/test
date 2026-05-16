@@ -1,4 +1,4 @@
-// common.js – board drawing and helpers
+// common.js – board drawing and highlight functions
 
 function getPieceImageSrc(piece) {
     if (!piece) return null;
@@ -30,15 +30,20 @@ function drawBoard(game, boardDiv, clickHandler) {
                 img.alt = `${piece.color} ${piece.type}`;
                 img.className = 'piece-img';
                 img.onerror = () => {
-                    const fallback = document.createTextNode(piece.color === 'w' ? '♙' : '♟');
+                    // fallback to Unicode symbol
                     square.innerHTML = '';
-                    square.appendChild(fallback);
-                    fallback.style.fontSize = 'clamp(28px, 6vw, 48px)';
+                    const symbol = piece.color === 'w' ? '♙' : '♟';
+                    square.appendChild(document.createTextNode(symbol));
+                    square.style.fontSize = 'clamp(28px, 6vw, 48px)';
+                    square.style.display = 'flex';
+                    square.style.alignItems = 'center';
+                    square.style.justifyContent = 'center';
                 };
                 square.appendChild(img);
             }
             square.dataset.row = i;
             square.dataset.col = j;
+            // Attach click handler using closure
             square.addEventListener('click', (function(r, c) {
                 return function() { clickHandler(r, c); };
             })(i, j));
@@ -48,9 +53,11 @@ function drawBoard(game, boardDiv, clickHandler) {
 }
 
 function highlightSquares(boardDiv, squares) {
+    // remove existing
     for (let i = 0; i < boardDiv.children.length; i++) {
         boardDiv.children[i].classList.remove('has-legal-move');
     }
+    // add new
     for (let [r, c] of squares) {
         const idx = r * 8 + c;
         if (boardDiv.children[idx]) {
