@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>♞ Chess Royale | Multiplayer + Bot</title>
     <style>
         * {
@@ -18,53 +18,57 @@
             align-items: center;
             font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, sans-serif;
             margin: 0;
-            padding: 24px;
+            padding: 16px;
         }
 
-        /* Main game card */
+        /* Main game card - fits perfectly */
         .game-container {
             background: rgba(30, 20, 15, 0.85);
             backdrop-filter: blur(4px);
-            border-radius: 56px;
-            padding: 24px 20px 28px;
+            border-radius: 48px;
+            padding: 20px 16px 24px;
             box-shadow: 0 25px 45px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.1);
             border: 1px solid rgba(255,215,150,0.3);
-            transition: all 0.2s ease;
+            width: 100%;
+            max-width: 700px;
+            margin: auto;
         }
 
         h1 {
             text-align: center;
-            font-size: 2.2rem;
+            font-size: 1.8rem;
             letter-spacing: 2px;
-            margin: 0 0 8px 0;
+            margin: 0 0 4px 0;
             background: linear-gradient(135deg, #f9e0a0, #d4a373);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .sub {
             text-align: center;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             color: #ecd9b4;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             border-bottom: 1px dashed #b98f5f;
             display: inline-block;
             width: auto;
-            padding: 0 16px 6px;
+            padding: 0 12px 4px;
         }
 
-        /* Chess board */
+        /* Board wrapper - ensures no overflow */
         .board-wrapper {
             background: #2d2b26;
-            padding: 12px;
-            border-radius: 32px;
-            box-shadow: inset 0 0 8px #00000033, 0 12px 28px black;
+            padding: 10px;
+            border-radius: 28px;
+            box-shadow: inset 0 0 8px #00000033, 0 10px 20px black;
+            margin: 0 auto;
+            width: fit-content;
+            max-width: 100%;
         }
 
         #board {
@@ -75,7 +79,8 @@
             border-radius: 20px;
             overflow: hidden;
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            max-width: 620px;
+            width: min(62vw, 62vh, 500px);
+            max-width: 100%;
             margin: 0 auto;
             cursor: pointer;
         }
@@ -84,14 +89,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: clamp(28px, 7vw, 56px);
+            font-size: min(5vw, 42px);
             font-weight: 500;
             transition: 0.1s linear;
             text-shadow: 2px 2px 2px rgba(0,0,0,0.2);
-            backdrop-filter: brightness(0.98);
+            font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
         }
 
-        /* Light and dark squares with depth */
+        /* Light and dark squares */
         .square.light {
             background-color: #f7e9cd;
             box-shadow: inset 0 0 0 1px rgba(255,255,200,0.6);
@@ -101,7 +106,6 @@
             box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2);
         }
 
-        /* Highlights */
         .square.highlight {
             background-color: #b7d968;
             box-shadow: 0 0 0 3px #f9f3b0 inset, 0 0 0 2px gold;
@@ -118,7 +122,7 @@
         .stats-panel {
             display: flex;
             justify-content: space-between;
-            margin: 20px 8px 12px;
+            margin: 16px 8px 12px;
             gap: 12px;
             flex-wrap: wrap;
         }
@@ -126,22 +130,22 @@
         .info-card {
             background: #2b211cee;
             backdrop-filter: blur(8px);
-            padding: 10px 18px;
+            padding: 6px 12px;
             border-radius: 60px;
             font-weight: bold;
             color: #ffecb3;
-            font-size: 1rem;
+            font-size: 0.85rem;
             text-align: center;
             flex: 1;
-            min-width: 100px;
+            min-width: 90px;
             border: 1px solid #c9aa6f;
             box-shadow: 0 2px 6px black;
         }
 
         .info-card span {
             color: #ffcf7a;
-            font-size: 1.3rem;
-            margin-left: 6px;
+            font-size: 1.1rem;
+            margin-left: 5px;
         }
 
         button {
@@ -149,9 +153,9 @@
             border: none;
             color: #fef0da;
             font-weight: bold;
-            padding: 10px 24px;
+            padding: 8px 20px;
             border-radius: 48px;
-            font-size: 1rem;
+            font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.15s;
             box-shadow: 0 4px 8px rgba(0,0,0,0.3);
@@ -168,10 +172,10 @@
         input {
             background: #fef3da;
             border: none;
-            padding: 10px 18px;
+            padding: 8px 16px;
             border-radius: 48px;
-            font-size: 1rem;
-            width: 200px;
+            font-size: 0.9rem;
+            width: 180px;
             margin: 5px;
             font-family: inherit;
             color: #2d2b26;
@@ -182,12 +186,12 @@
         .waiting-message {
             background: #2b2a1ed9;
             border-radius: 48px;
-            padding: 12px 20px;
+            padding: 10px 16px;
             text-align: center;
-            font-size: 1.2rem;
+            font-size: 0.9rem;
             font-weight: bold;
             color: #ffe2aa;
-            margin: 15px 0 5px;
+            margin: 12px 0 5px;
             backdrop-filter: blur(4px);
         }
 
@@ -195,9 +199,9 @@
             display: none;
         }
 
-        /* piece style (better unicode sizing) */
-        .square {
-            font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+        /* Center content inside container */
+        .center-flex {
+            text-align: center;
         }
     </style>
     <script src="https://unpkg.com/parse/dist/parse.min.js"></script>
@@ -208,11 +212,11 @@
     <h1>
         <span>♜</span> CHESS ROYALE <span>♞</span>
     </h1>
-    <div style="text-align: center"><div class="sub">⚡ real‑time multiplayer | bot mode ⚡</div></div>
+    <div class="center-flex"><div class="sub">⚡ real‑time multiplayer | bot mode ⚡</div></div>
 
-    <div id="loginScreen" style="text-align: center;">
+    <div id="loginScreen" class="center-flex">
         <input type="text" id="playerName" placeholder="Enter your name" autocomplete="off">
-        <div style="margin-top: 12px;">
+        <div style="margin-top: 8px;">
             <button id="playHumanBtn">👥 PLAY vs HUMAN</button>
             <button id="playBotBtn">🤖 PLAY vs BOT</button>
         </div>
@@ -230,7 +234,7 @@
             <div class="info-card">🎯 TURN: <span id="turnIndicator">—</span></div>
             <div class="info-card">🏆 STATUS: <span id="gameStatusText">active</span></div>
         </div>
-        <div style="text-align: center; margin-top: 8px;">
+        <div class="center-flex" style="margin-top: 8px;">
             <button id="cancelBtn">🏠 CANCEL / EXIT</button>
         </div>
     </div>
@@ -259,7 +263,7 @@
     const turnIndicator = document.getElementById('turnIndicator');
     const gameStatusText = document.getElementById('gameStatusText');
 
-    // ------------------- PIECE MAP (better unicode + styling) -------------------
+    // ------------------- PIECE MAP (beautiful Unicode) -------------------
     function getPieceSymbol(piece) {
         if (!piece) return '';
         const symbols = {
@@ -269,7 +273,6 @@
         return symbols[piece.type + (piece.color === 'w' ? 'w' : 'b')] || '';
     }
 
-    // draw board with clean pieces
     function drawBoard() {
         boardDiv.innerHTML = '';
         const boardState = game.board();
@@ -280,12 +283,8 @@
                 const piece = boardState[i][j];
                 if (piece) {
                     square.textContent = getPieceSymbol(piece);
-                    // tooltip on hover (piece name)
                     const pieceName = { 'k':'King','q':'Queen','r':'Rook','b':'Bishop','n':'Knight','p':'Pawn' };
-                    const name = pieceName[piece.type];
-                    square.title = `${piece.color === 'w' ? 'White' : 'Black'} ${name}`;
-                } else {
-                    square.title = '';
+                    square.title = `${piece.color === 'w' ? 'White' : 'Black'} ${pieceName[piece.type]}`;
                 }
                 square.dataset.row = i;
                 square.dataset.col = j;
@@ -317,7 +316,7 @@
         if (game.game_over()) {
             if (game.in_checkmate()) {
                 const winner = game.turn() === 'w' ? 'Black' : 'White';
-                gameStatusText.innerText = `🏁 ${winner} wins by checkmate!`;
+                gameStatusText.innerText = `🏁 ${winner} wins!`;
             } else if (game.in_stalemate()) gameStatusText.innerText = `♾️ Stalemate`;
             else gameStatusText.innerText = `🏁 Game over`;
         } else {
@@ -340,7 +339,6 @@
                 clearSelected();
                 const idx = row * 8 + col;
                 if (boardDiv.children[idx]) boardDiv.children[idx].classList.add('selected');
-                // get legal moves for this piece
                 const fromAlgebraic = String.fromCharCode(97+col) + (8-row);
                 const moves = game.moves({ square: fromAlgebraic, verbose: true });
                 const targets = moves.map(m => [8 - parseInt(m.to[1]), m.to.charCodeAt(0) - 97]);
@@ -394,7 +392,6 @@
                 game.load(newFen);
                 drawBoard();
                 updateUIinfo();
-                // bot move if bot game and it's bot's turn
                 if (isBotGame && !game.game_over()) {
                     const isBotTurn = (playerColor === 'white' && game.turn() === 'b') ||
                                       (playerColor === 'black' && game.turn() === 'w');
@@ -449,7 +446,7 @@
         return waiting;
     }
 
-    // ---- UI actions ----
+    // Event listeners
     document.getElementById('playHumanBtn').onclick = async () => {
         const name = document.getElementById('playerName').value.trim() || 'Guest';
         let gameObj = await joinWaitingGame(name);
