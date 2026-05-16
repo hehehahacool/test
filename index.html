@@ -2,50 +2,34 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>MAFIA STREETS - Roaming RPG</title>
-    <style>
-        body {
-            background: #0a0a0a;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            font-family: 'Courier New', monospace;
-        }
-        
-        .game-container {
-            background: #1a1a1a;
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
-        
-        canvas {
-            border: 3px solid #ff4444;
-            border-radius: 8px;
-            cursor: pointer;
-            background: #2a2a2a;
-        }
-        
-        .info-panel {
-            margin-top: 15px;
-            display: flex;
-            gap: 20px;
-            justify-content: space-between;
-            color: white;
-            font-weight: bold;
-        }
-        
-        .stat {
-            background: #2a2a2a;
-            padding: 8px 15px;
-            border-radius: 8px;
-            border-left: 3px solid #ff4444;
-        }
-        
-        .controls {
-            margin-top: 15px;
-            display: flex;
-            gap: 10px;
-            justify-content: center;
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-wrapper">
+        <div class="game-header">
+            <h1>🔫 MAFIA STREETS</h1>
+            <p>WASD or Arrow Keys to move | SPACE or Click to attack</p>
+        </div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div class="stats-panel">
+            <div class="stat">❤️ Health: <span id="health">100</span></div>
+            <div class="stat">💰 Money: <span id="money">0</span></div>
+            <div class="stat">💀 Kills: <span id="kills">0</span></div>
+            <div class="stat">🏆 Score: <span id="score">0</span></div>
+        </div>
+        <div class="controls-info">
+            <span>🕹️ Move: WASD / Arrow Keys</span>
+            <span>⚔️ Attack: SPACE or Mouse Click</span>
+            <span>🔄 Restart: R key</span>
+        </div>
+        <div id="gameOverScreen" class="game-over hidden">
+            <h2>💀 GAME OVER 💀</h2>
+            <p>Final Score: <span id="finalScore">0</span></p>
+            <button onclick="restartGame()">PLAY AGAIN</button>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
