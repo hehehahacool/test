@@ -3,41 +3,236 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>♜ Chess Multiplayer | Back4App</title>
+    <title>♞ Chess Royale | Multiplayer + Bot</title>
     <style>
-        * { box-sizing: border-box; user-select: none; }
-        body { background: #2c3e2f; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
-        .container { background: #f0d9b5; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center; max-width: 600px; width: 100%; }
-        h1 { margin-top: 0; color: #4a2e2a; }
-        #board { display: grid; grid-template-columns: repeat(8, 1fr); aspect-ratio: 1 / 1; background-color: #deb887; border: 2px solid #4a2e2a; margin: 20px auto; max-width: 500px; width: 100%; }
-        .square { display: flex; align-items: center; justify-content: center; font-size: clamp(20px, 6vw, 40px); cursor: pointer; }
-        .square.light { background-color: #f0d9b5; }
-        .square.dark { background-color: #b58863; }
-        .square.highlight { background-color: #7cb518; opacity: 0.8; }
-        .square.selected { background-color: #ffcc44; }
-        #gameInfo, #status { font-size: 1rem; font-weight: bold; margin: 10px 0; }
-        button, input { background: #4a2e2a; color: white; border: none; padding: 8px 16px; margin: 5px; border-radius: 30px; cursor: pointer; font-size: 1rem; }
-        button:hover { background: #6b443e; }
-        input { background: white; color: black; width: 60%; }
-        .hidden { display: none; }
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(145deg, #1a472a 0%, #0e2a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 24px;
+        }
+
+        /* Main game card */
+        .game-container {
+            background: rgba(30, 20, 15, 0.85);
+            backdrop-filter: blur(4px);
+            border-radius: 56px;
+            padding: 24px 20px 28px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,215,150,0.3);
+            transition: all 0.2s ease;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            letter-spacing: 2px;
+            margin: 0 0 8px 0;
+            background: linear-gradient(135deg, #f9e0a0, #d4a373);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .sub {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #ecd9b4;
+            margin-bottom: 20px;
+            border-bottom: 1px dashed #b98f5f;
+            display: inline-block;
+            width: auto;
+            padding: 0 16px 6px;
+        }
+
+        /* Chess board */
+        .board-wrapper {
+            background: #2d2b26;
+            padding: 12px;
+            border-radius: 32px;
+            box-shadow: inset 0 0 8px #00000033, 0 12px 28px black;
+        }
+
+        #board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            aspect-ratio: 1 / 1;
+            background-color: #e9d6b0;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            max-width: 620px;
+            margin: 0 auto;
+            cursor: pointer;
+        }
+
+        .square {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(28px, 7vw, 56px);
+            font-weight: 500;
+            transition: 0.1s linear;
+            text-shadow: 2px 2px 2px rgba(0,0,0,0.2);
+            backdrop-filter: brightness(0.98);
+        }
+
+        /* Light and dark squares with depth */
+        .square.light {
+            background-color: #f7e9cd;
+            box-shadow: inset 0 0 0 1px rgba(255,255,200,0.6);
+        }
+        .square.dark {
+            background-color: #b58863;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2);
+        }
+
+        /* Highlights */
+        .square.highlight {
+            background-color: #b7d968;
+            box-shadow: 0 0 0 3px #f9f3b0 inset, 0 0 0 2px gold;
+            transform: scale(0.98);
+        }
+
+        .square.selected {
+            background-color: #f3b33d;
+            box-shadow: 0 0 0 4px #ffdd99 inset;
+            transform: scale(0.96);
+        }
+
+        /* Stats panel */
+        .stats-panel {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 8px 12px;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .info-card {
+            background: #2b211cee;
+            backdrop-filter: blur(8px);
+            padding: 10px 18px;
+            border-radius: 60px;
+            font-weight: bold;
+            color: #ffecb3;
+            font-size: 1rem;
+            text-align: center;
+            flex: 1;
+            min-width: 100px;
+            border: 1px solid #c9aa6f;
+            box-shadow: 0 2px 6px black;
+        }
+
+        .info-card span {
+            color: #ffcf7a;
+            font-size: 1.3rem;
+            margin-left: 6px;
+        }
+
+        button {
+            background: #5f3b2c;
+            border: none;
+            color: #fef0da;
+            font-weight: bold;
+            padding: 10px 24px;
+            border-radius: 48px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            font-family: inherit;
+            margin: 4px;
+        }
+
+        button:hover {
+            background: #7e533e;
+            transform: scale(0.97);
+            box-shadow: 0 1px 3px black;
+        }
+
+        input {
+            background: #fef3da;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 48px;
+            font-size: 1rem;
+            width: 200px;
+            margin: 5px;
+            font-family: inherit;
+            color: #2d2b26;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .waiting-message {
+            background: #2b2a1ed9;
+            border-radius: 48px;
+            padding: 12px 20px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ffe2aa;
+            margin: 15px 0 5px;
+            backdrop-filter: blur(4px);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* piece style (better unicode sizing) */
+        .square {
+            font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+        }
     </style>
     <script src="https://unpkg.com/parse/dist/parse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 </head>
 <body>
-<div class="container">
-    <h1>♜ Chess Multiplayer ♞</h1>
-    <div id="loginScreen">
-        <input type="text" id="playerName" placeholder="Your name" autocomplete="off">
-        <button id="playHumanBtn">👥 Play vs Human</button>
-        <button id="playBotBtn">🤖 Play vs Bot</button>
+<div class="game-container">
+    <h1>
+        <span>♜</span> CHESS ROYALE <span>♞</span>
+    </h1>
+    <div style="text-align: center"><div class="sub">⚡ real‑time multiplayer | bot mode ⚡</div></div>
+
+    <div id="loginScreen" style="text-align: center;">
+        <input type="text" id="playerName" placeholder="Enter your name" autocomplete="off">
+        <div style="margin-top: 12px;">
+            <button id="playHumanBtn">👥 PLAY vs HUMAN</button>
+            <button id="playBotBtn">🤖 PLAY vs BOT</button>
+        </div>
     </div>
-    <div id="waitingMsg" class="hidden">⏳ Waiting for opponent...</div>
+
+    <div id="waitingMsg" class="waiting-message hidden">⏳ Looking for opponent... share the link with a friend!</div>
+
     <div id="gameScreen" class="hidden">
-        <div id="gameInfo"></div>
-        <div id="board"></div>
-        <div id="status"></div>
-        <button id="cancelBtn">🏠 Cancel Game</button>
+        <div class="board-wrapper">
+            <div id="board"></div>
+        </div>
+
+        <div class="stats-panel">
+            <div class="info-card">🧑‍🎤 YOU: <span id="playerColorTag">—</span></div>
+            <div class="info-card">🎯 TURN: <span id="turnIndicator">—</span></div>
+            <div class="info-card">🏆 STATUS: <span id="gameStatusText">active</span></div>
+        </div>
+        <div style="text-align: center; margin-top: 8px;">
+            <button id="cancelBtn">🏠 CANCEL / EXIT</button>
+        </div>
     </div>
 </div>
 
@@ -49,32 +244,48 @@
     Parse.serverURL = 'https://parseapi.back4app.com/';
 
     let currentGame = null;
-    let gameId = null;
-    let playerColor = null;
-    let opponentName = null;
+    let playerColor = null;       // "white" or "black"
     let isBotGame = false;
     let game = new Chess();
     let selectedSquare = null;
     let liveQuerySubscription = null;
 
+    // DOM elements
     const loginScreen = document.getElementById('loginScreen');
-    const gameScreen = document.getElementById('gameScreen');
     const waitingMsg = document.getElementById('waitingMsg');
+    const gameScreen = document.getElementById('gameScreen');
     const boardDiv = document.getElementById('board');
-    const gameInfo = document.getElementById('gameInfo');
-    const statusDiv = document.getElementById('status');
+    const playerColorTag = document.getElementById('playerColorTag');
+    const turnIndicator = document.getElementById('turnIndicator');
+    const gameStatusText = document.getElementById('gameStatusText');
 
+    // ------------------- PIECE MAP (better unicode + styling) -------------------
+    function getPieceSymbol(piece) {
+        if (!piece) return '';
+        const symbols = {
+            'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟',
+            'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙'
+        };
+        return symbols[piece.type + (piece.color === 'w' ? 'w' : 'b')] || '';
+    }
+
+    // draw board with clean pieces
     function drawBoard() {
         boardDiv.innerHTML = '';
-        const board = game.board();
+        const boardState = game.board();
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
                 const square = document.createElement('div');
                 square.className = `square ${(i + j) % 2 === 0 ? 'light' : 'dark'}`;
-                const piece = board[i][j];
+                const piece = boardState[i][j];
                 if (piece) {
-                    const pieceMap = { 'k':'♔','q':'♕','r':'♖','b':'♗','n':'♘','p':'♙','K':'♚','Q':'♛','R':'♜','B':'♝','N':'♞','P':'♟' };
-                    square.textContent = pieceMap[piece.type + (piece.color === 'w' ? 'w' : 'b')];
+                    square.textContent = getPieceSymbol(piece);
+                    // tooltip on hover (piece name)
+                    const pieceName = { 'k':'King','q':'Queen','r':'Rook','b':'Bishop','n':'Knight','p':'Pawn' };
+                    const name = pieceName[piece.type];
+                    square.title = `${piece.color === 'w' ? 'White' : 'Black'} ${name}`;
+                } else {
+                    square.title = '';
                 }
                 square.dataset.row = i;
                 square.dataset.col = j;
@@ -82,6 +293,7 @@
                 boardDiv.appendChild(square);
             }
         }
+        updateUIinfo();
     }
 
     function highlightSquares(squares) {
@@ -97,11 +309,28 @@
         selectedSquare = null;
     }
 
+    function updateUIinfo() {
+        if (!currentGame) return;
+        const turn = game.turn();
+        turnIndicator.innerText = turn === 'w' ? '⚪ WHITE' : '⚫ BLACK';
+        playerColorTag.innerText = playerColor === 'white' ? '⚪ White' : '⚫ Black';
+        if (game.game_over()) {
+            if (game.in_checkmate()) {
+                const winner = game.turn() === 'w' ? 'Black' : 'White';
+                gameStatusText.innerText = `🏁 ${winner} wins by checkmate!`;
+            } else if (game.in_stalemate()) gameStatusText.innerText = `♾️ Stalemate`;
+            else gameStatusText.innerText = `🏁 Game over`;
+        } else {
+            gameStatusText.innerText = game.in_check() ? '⚠️ CHECK! ⚠️' : 'Playing';
+        }
+    }
+
     async function onSquareClick(row, col) {
         if (!currentGame || game.game_over()) return;
         const turn = game.turn();
         if ((turn === 'w' && playerColor !== 'white') || (turn === 'b' && playerColor !== 'black')) {
-            statusDiv.innerText = "Not your turn!";
+            gameStatusText.innerText = "❌ Not your turn!";
+            setTimeout(() => updateUIinfo(), 800);
             return;
         }
         if (selectedSquare === null) {
@@ -111,11 +340,14 @@
                 clearSelected();
                 const idx = row * 8 + col;
                 if (boardDiv.children[idx]) boardDiv.children[idx].classList.add('selected');
-                const moves = game.moves({ square: String.fromCharCode(97+col) + (8-row), verbose: true });
+                // get legal moves for this piece
+                const fromAlgebraic = String.fromCharCode(97+col) + (8-row);
+                const moves = game.moves({ square: fromAlgebraic, verbose: true });
                 const targets = moves.map(m => [8 - parseInt(m.to[1]), m.to.charCodeAt(0) - 97]);
                 highlightSquares(targets);
             } else {
-                statusDiv.innerText = "Select your piece.";
+                gameStatusText.innerText = "Select your own piece";
+                setTimeout(() => updateUIinfo(), 600);
             }
         } else {
             const from = String.fromCharCode(97 + selectedSquare.col) + (8 - selectedSquare.row);
@@ -125,10 +357,12 @@
                 clearSelected();
                 drawBoard();
                 await sendMoveToBackend(game.fen(), game.turn());
+                updateUIinfo();
             } else {
-                statusDiv.innerText = "Invalid move.";
+                gameStatusText.innerText = "Invalid move";
                 clearSelected();
                 drawBoard();
+                setTimeout(() => updateUIinfo(), 500);
             }
         }
     }
@@ -142,9 +376,7 @@
             if (game.in_checkmate()) {
                 const winner = (game.turn() === 'w') ? 'black' : 'white';
                 currentGame.set('winner', winner);
-            } else {
-                currentGame.set('winner', 'draw');
-            }
+            } else currentGame.set('winner', 'draw');
         }
         await currentGame.save();
     }
@@ -161,12 +393,12 @@
             if (newFen !== game.fen()) {
                 game.load(newFen);
                 drawBoard();
-                const turnMsg = game.turn() === 'w' ? 'White' : 'Black';
-                statusDiv.innerText = game.game_over() ? (game.in_checkmate() ? 'Checkmate!' : 'Game over') : `${turnMsg} to move`;
+                updateUIinfo();
+                // bot move if bot game and it's bot's turn
                 if (isBotGame && !game.game_over()) {
                     const isBotTurn = (playerColor === 'white' && game.turn() === 'b') ||
                                       (playerColor === 'black' && game.turn() === 'w');
-                    if (isBotTurn) setTimeout(() => makeBotMove(), 300);
+                    if (isBotTurn) setTimeout(() => makeBotMove(), 250);
                 }
             }
         });
@@ -183,6 +415,7 @@
         if (moveObj) {
             drawBoard();
             await sendMoveToBackend(game.fen(), game.turn());
+            updateUIinfo();
         }
     }
 
@@ -216,8 +449,9 @@
         return waiting;
     }
 
+    // ---- UI actions ----
     document.getElementById('playHumanBtn').onclick = async () => {
-        const name = document.getElementById('playerName').value.trim() || 'Anonymous';
+        const name = document.getElementById('playerName').value.trim() || 'Guest';
         let gameObj = await joinWaitingGame(name);
         let assignedColor = 'black';
         let opponent = '';
@@ -233,38 +467,33 @@
             gameScreen.classList.remove('hidden');
         }
         currentGame = gameObj;
-        gameId = gameObj.get('gameId');
         playerColor = assignedColor;
         isBotGame = false;
         game.load(gameObj.get('fen'));
         drawBoard();
-        gameInfo.innerText = `You: ${name} (${playerColor}) vs ${opponent}`;
-        statusDiv.innerText = `${game.turn() === 'w' ? 'White' : 'Black'} to move`;
+        updateUIinfo();
         loginScreen.classList.add('hidden');
         gameScreen.classList.remove('hidden');
         subscribeToGame(gameObj);
+        if (gameObj.get('status') !== 'waiting') waitingMsg.classList.add('hidden');
     };
 
     document.getElementById('playBotBtn').onclick = async () => {
-        const name = document.getElementById('playerName').value.trim() || 'Anonymous';
+        const name = document.getElementById('playerName').value.trim() || 'You';
         const gameObj = await createGame(true, name);
         currentGame = gameObj;
-        gameId = gameObj.get('gameId');
         playerColor = 'white';
         isBotGame = true;
         game.load(gameObj.get('fen'));
         drawBoard();
-        gameInfo.innerText = `You (White) vs 🤖 Bot`;
-        statusDiv.innerText = `White to move`;
+        updateUIinfo();
         loginScreen.classList.add('hidden');
         gameScreen.classList.remove('hidden');
         waitingMsg.classList.add('hidden');
         subscribeToGame(gameObj);
     };
 
-    document.getElementById('cancelBtn').onclick = () => {
-        location.reload();
-    };
+    document.getElementById('cancelBtn').onclick = () => location.reload();
 </script>
 </body>
 </html>
