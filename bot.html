@@ -3,29 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Chess vs Bot</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Chess vs Bot – with side coordinates</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            background: #1a472a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            font-family: system-ui, 'Segoe UI', sans-serif;
+        }
+        .game-container {
+            background: #2d2b26;
+            border-radius: 24px;
+            padding: 20px;
+            max-width: 750px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            color: #f9e0a0;
+            margin: 0 0 8px;
+        }
+        .sub {
+            color: #ecd9b4;
+            font-size: 0.8rem;
+            margin-bottom: 20px;
+        }
+        /* Board wrapper with coordinate labels on sides */
+        .board-with-coords {
+            display: flex;
+            justify-content: center;
+            margin: 0 auto;
+            width: fit-content;
+        }
+        .rank-labels {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            margin-right: 8px;
+            font-weight: bold;
+            color: #ecd9b4;
+            background: #2d2b26;
+            padding: 0 6px;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        .rank-labels div {
+            width: 24px;
+            text-align: center;
+            line-height: 1;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .board-container {
+            display: flex;
+            flex-direction: column;
+        }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            aspect-ratio: 1 / 1;
+            background-color: #e9d6b0;
+            border-radius: 12px;
+            overflow: hidden;
+            width: min(65vw, 65vh, 500px);
+            box-shadow: 0 8px 20px black;
+        }
+        .square {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+        }
+        .square.light { background-color: #f0d9b5; }
+        .square.dark { background-color: #b58863; }
+        .square.selected {
+            background-color: #f3b33d;
+            box-shadow: inset 0 0 0 3px gold;
+        }
+        /* Green circle for legal moves */
+        .move-circle {
+            position: absolute;
+            width: 30%;
+            height: 30%;
+            background: radial-gradient(circle, #4caf50, #2e7d32);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 10;
+        }
+        .piece-img {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .file-labels {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 8px;
+            font-weight: bold;
+            color: #ecd9b4;
+            background: #2d2b26;
+            padding: 6px 0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        .file-labels div {
+            width: 100%;
+            text-align: center;
+        }
+        .stats-panel {
+            display: flex;
+            justify-content: space-between;
+            margin: 16px 0;
+            gap: 12px;
+        }
+        .info-card {
+            background: #1e1a15;
+            padding: 6px 12px;
+            border-radius: 40px;
+            color: #ffecb3;
+            font-weight: bold;
+            font-size: 0.9rem;
+            flex: 1;
+        }
+        button {
+            background: #5f3b2c;
+            border: none;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 1rem;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .center {
+            text-align: center;
+        }
+    </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-    <script src="common.js"></script>
 </head>
 <body>
 <div class="game-container">
     <h1>♞ CHESS vs BOT</h1>
-    <div class="sub">Tap a white piece → green circles show where it can move → tap a green circle to move</div>
+    <div class="sub">Tap a white piece → green circles show legal moves (e.g. pawn to e4) → tap a green circle to move</div>
 
-    <div id="board"></div>
+    <div class="board-with-coords">
+        <!-- Rank numbers (1-8) on the left -->
+        <div class="rank-labels" id="rankLabels"></div>
+        <div class="board-container">
+            <div id="board"></div>
+            <!-- File letters (a-h) at the bottom -->
+            <div class="file-labels" id="fileLabels"></div>
+        </div>
+    </div>
 
     <div class="stats-panel">
         <div class="info-card">🎯 TURN: <span id="turnIndicator">Your turn</span></div>
         <div class="info-card">🏆 STATUS: <span id="statusText">Playing</span></div>
     </div>
-
     <div class="center">
         <button id="resetBtn">🔄 New Game</button>
     </div>
 </div>
 
 <script>
+    // ---------- Game state ----------
     let game = new Chess();
     const boardDiv = document.getElementById('board');
     const turnIndicator = document.getElementById('turnIndicator');
@@ -33,6 +192,111 @@
     let selectedPiece = null;      // { row, col }
     let legalTargets = [];          // array of [row, col]
     let waitingBot = false;
+
+    // Helper: convert row, col to algebraic notation (e.g., row 0, col 0 -> a8)
+    function algebraic(row, col) {
+        const file = String.fromCharCode(97 + col);
+        const rank = 8 - row;
+        return file + rank;
+    }
+
+    // Helper: get image filename or fallback
+    function getPieceImageSrc(piece) {
+        if (!piece) return null;
+        const color = piece.color === 'w' ? 'white' : 'black';
+        let type = '';
+        switch (piece.type) {
+            case 'k': type = 'king'; break;
+            case 'q': type = 'queen'; break;
+            case 'r': type = 'rook'; break;
+            case 'b': type = 'bishop'; break;
+            case 'n': type = 'knight'; break;
+            case 'p': type = 'pawn'; break;
+        }
+        return `${color}${type}.png`;
+    }
+
+    // Draw side labels
+    function drawSideLabels() {
+        const rankContainer = document.getElementById('rankLabels');
+        rankContainer.innerHTML = '';
+        for (let i = 0; i < 8; i++) {
+            const rankDiv = document.createElement('div');
+            rankDiv.textContent = 8 - i;
+            rankContainer.appendChild(rankDiv);
+        }
+        const fileContainer = document.getElementById('fileLabels');
+        fileContainer.innerHTML = '';
+        const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+        files.forEach(f => {
+            const fileDiv = document.createElement('div');
+            fileDiv.textContent = f;
+            fileContainer.appendChild(fileDiv);
+        });
+    }
+
+    // Draw board (without labels on squares)
+    function drawBoard() {
+        boardDiv.innerHTML = '';
+        const board = game.board();
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                const square = document.createElement('div');
+                square.className = `square ${(i + j) % 2 === 0 ? 'light' : 'dark'}`;
+                const piece = board[i][j];
+                if (piece) {
+                    const imgSrc = getPieceImageSrc(piece);
+                    const img = document.createElement('img');
+                    img.src = imgSrc;
+                    img.alt = `${piece.color} ${piece.type}`;
+                    img.className = 'piece-img';
+                    img.onerror = () => {
+                        // fallback to Unicode
+                        square.innerHTML = '';
+                        const symbol = piece.color === 'w' ? '♙' : '♟';
+                        square.appendChild(document.createTextNode(symbol));
+                        square.style.fontSize = 'clamp(28px, 6vw, 48px)';
+                        square.style.display = 'flex';
+                        square.style.alignItems = 'center';
+                        square.style.justifyContent = 'center';
+                    };
+                    square.appendChild(img);
+                }
+                square.dataset.row = i;
+                square.dataset.col = j;
+                square.addEventListener('click', (function(r, c) {
+                    return function() { onSquareClick(r, c); };
+                })(i, j));
+                boardDiv.appendChild(square);
+            }
+        }
+        // Re-apply green circles if any legal targets exist
+        if (legalTargets.length > 0) {
+            for (let [r, c] of legalTargets) {
+                const idx = r * 8 + c;
+                if (boardDiv.children[idx]) {
+                    const circle = document.createElement('div');
+                    circle.className = 'move-circle';
+                    boardDiv.children[idx].appendChild(circle);
+                }
+            }
+        }
+        // Re-apply selected highlight
+        if (selectedPiece) {
+            const idx = selectedPiece.row * 8 + selectedPiece.col;
+            if (boardDiv.children[idx]) boardDiv.children[idx].classList.add('selected');
+        }
+    }
+
+    // Clear green circles and selected highlights
+    function clearMoveCircles() {
+        for (let i = 0; i < boardDiv.children.length; i++) {
+            const sq = boardDiv.children[i];
+            const circles = sq.querySelectorAll('.move-circle');
+            circles.forEach(c => c.remove());
+            sq.classList.remove('selected');
+        }
+    }
 
     function updateUI() {
         if (game.game_over()) {
@@ -42,7 +306,7 @@
                 statusText.innerText = `${winner} wins!`;
                 turnIndicator.innerText = "Game over";
             } else if (game.in_stalemate()) {
-                statusText.innerText = "Stalemate";
+                statusText.innerText = "Stalemate!";
                 turnIndicator.innerText = "Game over";
             } else {
                 statusText.innerText = "Game over";
@@ -50,30 +314,17 @@
             }
             return;
         }
-        const playerTurn = (game.turn() === 'w');
-        turnIndicator.innerText = playerTurn ? "✅ YOUR TURN" : "🤖 BOT'S TURN...";
+        const isPlayerTurn = (game.turn() === 'w');
+        turnIndicator.innerText = isPlayerTurn ? "✅ YOUR TURN" : "🤖 BOT'S TURN...";
         statusText.innerText = game.in_check() ? "⚠️ CHECK!" : "Playing";
     }
 
-    function clearHighlights() {
-        for (let i = 0; i < boardDiv.children.length; i++) {
-            boardDiv.children[i].classList.remove('has-legal-move');
-            boardDiv.children[i].classList.remove('selected');
-        }
-    }
-
-    function redraw() {
-        drawBoard(game, boardDiv, onSquareClick);
-        if (selectedPiece) {
-            const idx = selectedPiece.row * 8 + selectedPiece.col;
-            if (boardDiv.children[idx]) boardDiv.children[idx].classList.add('selected');
-        }
-        if (legalTargets.length) {
-            highlightSquares(boardDiv, legalTargets);
-        }
+    function redrawAll() {
+        drawBoard();
         updateUI();
     }
 
+    // Handle tap/click on a square
     function onSquareClick(row, col) {
         if (game.game_over()) return;
         if (waitingBot) {
@@ -92,14 +343,13 @@
             if (isTarget) {
                 const fromRow = selectedPiece.row;
                 const fromCol = selectedPiece.col;
-                const from = String.fromCharCode(97 + fromCol) + (8 - fromRow);
-                const to = String.fromCharCode(97 + col) + (8 - row);
+                const from = algebraic(fromRow, fromCol);
+                const to = algebraic(row, col);
                 const move = game.move({ from, to, promotion: 'q' });
                 if (move) {
                     selectedPiece = null;
                     legalTargets = [];
-                    redraw();
-                    updateUI();
+                    redrawAll();
                     if (!game.game_over() && game.turn() === 'b') {
                         waitingBot = true;
                         turnIndicator.innerText = "Bot thinking...";
@@ -108,21 +358,21 @@
                     return;
                 }
             }
-            // If clicked on non-target, clear selection
-            clearHighlights();
+            // Clicked on non-legal square: clear selection
+            clearMoveCircles();
             selectedPiece = null;
             legalTargets = [];
-            // fall through to attempt new selection
+            // fall through to try selecting a new piece
         }
 
-        // No selection: try to select a white piece
+        // No selected piece: try to select a white piece at this square
         const piece = game.get(row, col);
         if (piece && piece.color === 'w') {
             selectedPiece = { row, col };
-            clearHighlights();
+            clearMoveCircles();
             const idx = row * 8 + col;
             if (boardDiv.children[idx]) boardDiv.children[idx].classList.add('selected');
-            const fromAlg = String.fromCharCode(97 + col) + (8 - row);
+            const fromAlg = algebraic(row, col);
             const moves = game.moves({ square: fromAlg, verbose: true });
             const targets = moves.map(m => {
                 const toRow = 8 - parseInt(m.to[1]);
@@ -130,26 +380,37 @@
                 return [toRow, toCol];
             });
             legalTargets = targets;
-            if (targets.length) {
-                highlightSquares(boardDiv, targets);
-                statusText.innerText = "Tap a green circle to move";
+            if (targets.length > 0) {
+                // add green circles
+                for (let [r, c] of targets) {
+                    const targetIdx = r * 8 + c;
+                    if (boardDiv.children[targetIdx]) {
+                        const circle = document.createElement('div');
+                        circle.className = 'move-circle';
+                        boardDiv.children[targetIdx].appendChild(circle);
+                    }
+                }
+                // Show example legal move in status
+                const example = algebraic(targets[0][0], targets[0][1]);
+                statusText.innerText = `Legal moves: e.g. ${example} → tap a green circle`;
                 setTimeout(() => {
                     if (!game.game_over()) statusText.innerText = game.in_check() ? "⚠️ CHECK!" : "Playing";
-                }, 1500);
+                }, 2000);
             } else {
-                statusText.innerText = "No legal moves for this piece";
+                statusText.innerText = "This piece has no legal moves";
                 setTimeout(() => {
                     if (!game.game_over()) statusText.innerText = "Playing";
                 }, 1000);
             }
         } else {
-            statusText.innerText = "Select your piece (white)";
+            statusText.innerText = "Select your white piece";
             setTimeout(() => {
                 if (!game.game_over()) statusText.innerText = "Playing";
             }, 800);
         }
     }
 
+    // Bot: random legal move
     function makeBotMove() {
         if (game.game_over()) {
             waitingBot = false;
@@ -161,7 +422,7 @@
             return;
         }
         const moves = game.moves();
-        if (!moves.length) {
+        if (moves.length === 0) {
             waitingBot = false;
             updateUI();
             return;
@@ -170,7 +431,7 @@
         game.move(randomMove);
         selectedPiece = null;
         legalTargets = [];
-        redraw();
+        redrawAll();
         waitingBot = false;
         updateUI();
         if (!game.game_over() && game.turn() === 'b') {
@@ -184,11 +445,12 @@
         selectedPiece = null;
         legalTargets = [];
         waitingBot = false;
-        redraw();
+        redrawAll();
         updateUI();
     }
 
-    document.getElementById('resetBtn').addEventListener('click', resetGame);
+    // Initialise side labels and board
+    drawSideLabels();
     resetGame();
 </script>
 </body>
